@@ -5,6 +5,8 @@ This application was generated using JHipster 8.11.0, you can find documentation
 
 This application also uses Mise tool version manager - https://mise.jdx.dev
 
+e.g. mise run dev
+
 
 ## Project Structure
 

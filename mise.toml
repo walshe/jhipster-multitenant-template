@@ -19,3 +19,7 @@ run = "./gradlew -Pprod -Pwebapp"
 [tasks.clean]
 description = "Clean gradle build"
 run = "./gradlew clean"
+
+[tasks.jdl]
+description = "Update entities from JDL with incremental changelogs.. crucial for Liquibase. It tells JHipster to create new database migration files instead of overwriting your existing ones—essential for preserving data while you evolve your schema"
+run = "npx jhipster jdl jhipster-model.jdl --incremental-changelog"
