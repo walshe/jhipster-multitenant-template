@@ -8,6 +8,9 @@ This application also uses Mise tool version manager - https://mise.jdx.dev
 e.g. mise run dev
 
 
+
+
+
 ## Project Structure
 
 Node is required for generation and recommended for development. `package.json` is always generated for a better development experience with prettier, commit hooks, scripts and so on.
