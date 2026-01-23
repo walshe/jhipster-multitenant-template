@@ -1,0 +1,21 @@
+[tools]
+java = "17"
+node = "20"
+
+[tasks.db]
+description = "Start MySQL Docker container for production profile"
+run = "docker-compose -f src/main/docker/mysql.yml up -d"
+
+[tasks.dev]
+description = "Start app in Dev mode (H2 Database)"
+run = "./gradlew"
+
+[tasks.prod-local]
+description = "Run app locally using the Production profile (MySQL)"
+# Fixed: changed depends_on to depends
+depends = ["db"]
+run = "./gradlew -Pprod -Pwebapp"
+
+[tasks.clean]
+description = "Clean gradle build"
+run = "./gradlew clean"

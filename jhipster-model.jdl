@@ -1,0 +1,68 @@
+application {
+  config {
+    baseName multitenant
+    applicationType monolith
+    authenticationType jwt
+    databaseType sql
+    devDatabaseType h2Disk
+    prodDatabaseType mysql
+    buildTool gradle
+    clientFramework vue
+    nativeLanguage en
+    languages [en]
+    clientTheme united
+    clientThemeVariant dark
+    enableHibernateCache false
+    messageBroker no
+    packageName com.walshe.multitenant
+    reactive false
+    serverPort 8080
+    testFrameworks []
+
+  }
+  entities *
+}
+
+enum BusinessRole {
+  OWNER, ADMIN, MEMBER
+}
+
+entity Business {
+  name String required,
+  slug String required unique,
+  createdAt Instant,
+  updatedAt Instant
+}
+
+entity BusinessUser {
+  role BusinessRole required,
+  createdAt Instant,
+  updatedAt Instant
+}
+
+entity BusinessInvitation {
+  role BusinessRole required,
+  token String required unique,
+  invitedEmail String required,
+  createdAt Instant,
+  updatedAt Instant
+}
+
+relationship ManyToOne {
+  Business{owner(login)} to User with builtInEntity
+}
+
+relationship ManyToOne {
+  BusinessUser{business(name)} to Business,
+  BusinessUser{user(login)} to User with builtInEntity
+}
+
+relationship ManyToOne {
+  BusinessInvitation{business(name)} to Business,
+  BusinessInvitation{invitedBy(login)} to User with builtInEntity
+}
+
+filter all
+paginate all with pagination
+dto all with mapstruct
+service all with serviceClass

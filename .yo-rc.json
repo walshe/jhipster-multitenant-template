@@ -1,0 +1,28 @@
+{
+  "generator-jhipster": {
+    "applicationType": "monolith",
+    "authenticationType": "jwt",
+    "baseName": "multitenant",
+    "buildTool": "gradle",
+    "clientFramework": "vue",
+    "clientTheme": "united",
+    "clientThemeVariant": "dark",
+    "databaseType": "sql",
+    "devDatabaseType": "h2Disk",
+    "enableHibernateCache": false,
+    "entities": ["Business", "BusinessUser", "BusinessInvitation"],
+    "jhipsterVersion": "8.11.0",
+    "jwtSecretKey": "YzZhZTgyZTkyYWNhMGI5ODZmMzEwMDRhZGY3ZjA3ODZlMDQ4NWVjYzU3ZGI5ZTAxNzkzZjBjOWY2YThkZGFmYmY5ODI2YjA0MjI2ZDQ0NzFjMmZjM2EwM2I4YTU5Njg2MTE3MTdjMmY4NTQ3MWY1MTNkZTM3OGY4ZjE2NmYwZmY=",
+    "languages": ["en"],
+    "lastLiquibaseTimestamp": 1769180678000,
+    "messageBroker": "no",
+    "monorepository": true,
+    "nativeLanguage": "en",
+    "packageName": "com.walshe.multitenant",
+    "prodDatabaseType": "mysql",
+    "reactive": false,
+    "serverPort": "8080",
+    "skipCommitHook": true,
+    "testFrameworks": []
+  }
+}

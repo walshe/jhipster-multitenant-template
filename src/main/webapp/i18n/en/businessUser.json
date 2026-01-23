@@ -1,0 +1,28 @@
+{
+  "multitenantApp": {
+    "businessUser": {
+      "home": {
+        "title": "Business Users",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Business User",
+        "createOrEditLabel": "Create or edit a Business User",
+        "notFound": "No Business Users found"
+      },
+      "created": "A new Business User is created with identifier { param }",
+      "updated": "A Business User is updated with identifier { param }",
+      "deleted": "A Business User is deleted with identifier { param }",
+      "delete": {
+        "question": "Are you sure you want to delete Business User { id }?"
+      },
+      "detail": {
+        "title": "Business User"
+      },
+      "id": "ID",
+      "role": "Role",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "business": "Business",
+      "user": "User"
+    }
+  }
+}
