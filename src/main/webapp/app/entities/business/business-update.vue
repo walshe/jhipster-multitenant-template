@@ -74,7 +74,8 @@
               />
             </div>
           </div>
-          <div class="form-group">
+          <!-- Show owner field only during edit operations, not during creation -->
+          <div class="form-group" v-if="business.id">
             <label class="form-control-label" v-text="t$('multitenantApp.business.owner')" for="business-owner"></label>
             <select class="form-control" id="business-owner" data-cy="owner" name="owner" v-model="business.owner">
               <option :value="null"></option>

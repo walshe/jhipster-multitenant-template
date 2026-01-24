@@ -43,12 +43,30 @@ export default defineComponent({
       retrieveBusiness(route.params.businessId);
     }
 
-    const initRelationships = () => {
-      userService()
-        .retrieve()
-        .then(res => {
-          users.value = res.data;
-        });
+    // Load business members only when editing an existing business
+    const initRelationships = async () => {
+      if (route.params?.businessId) {
+        // Wait for the business to be loaded before trying to get members
+        setTimeout(async () => {
+          try {
+            const res = await businessService().retrieveBusinessMembers(Number(route.params.businessId));
+            users.value = res.data;
+          } catch (error) {
+            // If the user doesn't have permission to view business members, fall back to loading all users
+            // This might happen if the user is not the owner of the business
+            try {
+              const res = await userService().retrieve();
+              users.value = res.data;
+            } catch (fallbackError) {
+              // If both fail, just continue without users
+              console.error('Could not load users:', fallbackError);
+            }
+          }
+        }, 0);
+      } else {
+        // For new business creation, we don't need to load users
+        // The owner field is hidden during creation anyway
+      }
     };
 
     initRelationships();
@@ -64,7 +82,6 @@ export default defineComponent({
       },
       createdAt: {},
       updatedAt: {},
-      owner: {},
     };
     const v$ = useVuelidate(validationRules, business as any);
     v$.value.$validate();
@@ -87,6 +104,7 @@ export default defineComponent({
     save(): void {
       this.isSaving = true;
       if (this.business.id) {
+        // For updates, we can modify the owner field
         this.businessService()
           .update(this.business)
           .then(param => {
@@ -99,8 +117,13 @@ export default defineComponent({
             this.alertService.showHttpError(error.response);
           });
       } else {
+        // For creation, we should not send the owner field as it will be auto-assigned
+        // Create a copy of the business without the owner field for creation
+        const businessForCreation = { ...this.business };
+        delete businessForCreation.owner;
+
         this.businessService()
-          .create(this.business)
+          .create(businessForCreation)
           .then(param => {
             this.isSaving = false;
             this.previousState();

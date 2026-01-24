@@ -1,6 +1,6 @@
 [tools]
 java = "17"
-node = "20"
+node = "22.15.0"
 
 [tasks.db]
 description = "Start MySQL Docker container for production profile"
@@ -23,3 +23,28 @@ run = "./gradlew clean"
 [tasks.jdl]
 description = "Update entities from JDL with incremental changelogs.. crucial for Liquibase. It tells JHipster to create new database migration files instead of overwriting your existing ones—essential for preserving data while you evolve your schema"
 run = "npx jhipster jdl jhipster-model.jdl --incremental-changelog"
+
+
+[tasks.openspec-setup]
+description = "Install OpenSpec"
+run = "npm install @fission-ai/openspec@latest --save-dev"
+
+[tasks.openspec-init]
+description = "Initialize OpenSpec in this project"
+depends = ["openspec-setup"]
+run = "npx openspec init"
+
+[tasks.openspec-list]
+description = "List active change proposals"
+depends = ["openspec-setup"]
+run = "npx openspec list"
+
+[tasks.openspec-archive]
+description = "Merge completed change into main specs"
+depends = ["openspec-setup"]
+run = "npx openspec archive"
+
+[tasks.openspec-view]
+description = "Open the OpenSpec interactive dashboard"
+depends = ["openspec-setup"]
+run = "npx openspec view"

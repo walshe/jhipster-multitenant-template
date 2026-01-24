@@ -1,10 +1,14 @@
 package com.walshe.multitenant.web.rest;
 
+import com.walshe.multitenant.domain.User;
 import com.walshe.multitenant.repository.BusinessRepository;
 import com.walshe.multitenant.service.BusinessQueryService;
 import com.walshe.multitenant.service.BusinessService;
+import com.walshe.multitenant.service.UserService;
 import com.walshe.multitenant.service.criteria.BusinessCriteria;
+import com.walshe.multitenant.service.dto.BusinessCreateDTO;
 import com.walshe.multitenant.service.dto.BusinessDTO;
+import com.walshe.multitenant.service.errors.InvalidBusinessOwnershipException;
 import com.walshe.multitenant.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -46,14 +50,18 @@ public class BusinessResource {
 
     private final BusinessQueryService businessQueryService;
 
+    private final UserService userService;
+
     public BusinessResource(
         BusinessService businessService,
         BusinessRepository businessRepository,
-        BusinessQueryService businessQueryService
+        BusinessQueryService businessQueryService,
+        UserService userService
     ) {
         this.businessService = businessService;
         this.businessRepository = businessRepository;
         this.businessQueryService = businessQueryService;
+        this.userService = userService;
     }
 
     /**
@@ -64,12 +72,25 @@ public class BusinessResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
-    public ResponseEntity<BusinessDTO> createBusiness(@Valid @RequestBody BusinessDTO businessDTO) throws URISyntaxException {
-        LOG.debug("REST request to save Business : {}", businessDTO);
-        if (businessDTO.getId() != null) {
+    public ResponseEntity<BusinessDTO> createBusiness(@Valid @RequestBody BusinessCreateDTO businessCreateDTO) throws URISyntaxException {
+        LOG.debug("REST request to save Business : {}", businessCreateDTO);
+        if (businessCreateDTO.getId() != null) {
             throw new BadRequestAlertException("A new business cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        businessDTO = businessService.save(businessDTO);
+        // Get the authenticated user
+        Optional<User> currentUserOpt = userService.getUserWithAuthorities();
+        if (currentUserOpt.isEmpty()) {
+            throw new BadRequestAlertException("User not authenticated", ENTITY_NAME, "notauthenticated");
+        }
+
+        // Convert to BusinessDTO and set the owner to the authenticated user
+        BusinessDTO businessDTO = new BusinessDTO();
+        businessDTO.setName(businessCreateDTO.getName());
+        businessDTO.setSlug(businessCreateDTO.getSlug());
+        businessDTO.setCreatedAt(businessCreateDTO.getCreatedAt());
+        businessDTO.setUpdatedAt(businessCreateDTO.getUpdatedAt());
+
+        businessDTO = businessService.createWithOwner(businessDTO, currentUserOpt.get());
         return ResponseEntity.created(new URI("/api/businesses/" + businessDTO.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, businessDTO.getId().toString()))
             .body(businessDTO);
@@ -102,7 +123,12 @@ public class BusinessResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        businessDTO = businessService.update(businessDTO);
+        try {
+            businessDTO = businessService.update(businessDTO);
+        } catch (InvalidBusinessOwnershipException e) {
+            throw new BadRequestAlertException(e.getMessage(), ENTITY_NAME, "invalidowner");
+        }
+
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, businessDTO.getId().toString()))
             .body(businessDTO);
@@ -136,7 +162,12 @@ public class BusinessResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<BusinessDTO> result = businessService.partialUpdate(businessDTO);
+        Optional<BusinessDTO> result;
+        try {
+            result = businessService.partialUpdate(businessDTO);
+        } catch (InvalidBusinessOwnershipException e) {
+            throw new BadRequestAlertException(e.getMessage(), ENTITY_NAME, "invalidowner");
+        }
 
         return ResponseUtil.wrapOrNotFound(
             result,
@@ -161,6 +192,47 @@ public class BusinessResource {
         Page<BusinessDTO> page = businessQueryService.findByCriteria(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /businesses/:id/members} : get all the members of a specific business.
+     *
+     * @param id the id of the business to retrieve members for.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the list of business members.
+     */
+    @GetMapping("/{id}/members")
+    public ResponseEntity<List<com.walshe.multitenant.service.dto.BusinessMemberDTO>> getBusinessMembers(@PathVariable("id") Long id) {
+        LOG.debug("REST request to get members of Business : {}", id);
+
+        // Check if the authenticated user is the owner of this business
+        Optional<User> currentUserOpt = userService.getUserWithAuthorities();
+        if (currentUserOpt.isEmpty()) {
+            throw new BadRequestAlertException("User not authenticated", ENTITY_NAME, "notauthenticated");
+        }
+
+        // Get the business to check if the current user is the owner
+        Optional<BusinessDTO> businessOpt = businessService.findOne(id);
+        if (businessOpt.isEmpty()) {
+            throw new BadRequestAlertException("Business not found", ENTITY_NAME, "idnotfound");
+        }
+
+        User currentUser = currentUserOpt.get();
+        BusinessDTO business = businessOpt.get();
+
+        // Check if the current user is the owner of the business or has admin rights
+        // Users need at least ROLE_USER and be the owner of the business
+        boolean hasUserRole = currentUser.getAuthorities().stream()
+            .anyMatch(auth -> "ROLE_USER".equals(auth.getName()));
+        boolean isOwner = business.getOwner() != null && business.getOwner().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getAuthorities().stream()
+            .anyMatch(auth -> "ROLE_ADMIN".equals(auth.getName()));
+
+        if (!((hasUserRole && isOwner) || isAdmin)) {
+            throw new BadRequestAlertException("User is not authorized to access members of this business", ENTITY_NAME, "notauthorized");
+        }
+
+        List<com.walshe.multitenant.service.dto.BusinessMemberDTO> members = businessService.getBusinessMembers(id);
+        return ResponseEntity.ok().body(members);
     }
 
     /**

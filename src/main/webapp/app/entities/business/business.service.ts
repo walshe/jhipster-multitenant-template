@@ -84,4 +84,17 @@ export default class BusinessService {
         });
     });
   }
+
+  retrieveBusinessMembers(businessId: number): Promise<any> {
+    return new Promise<any>((resolve, reject) => {
+      axios
+        .get(`${baseApiUrl}/${businessId}/members`)
+        .then(res => {
+          resolve(res);
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  }
 }

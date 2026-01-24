@@ -94,6 +94,7 @@
   },
   "devDependencies": {
     "@eslint/js": "9.26.0",
+    "@fission-ai/openspec": "^0.23.0",
     "@pinia/testing": "1.0.1",
     "@tsconfig/node18": "18.2.4",
     "@types/node": "20.11.25",

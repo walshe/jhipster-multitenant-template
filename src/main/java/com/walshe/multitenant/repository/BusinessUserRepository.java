@@ -17,6 +17,12 @@ public interface BusinessUserRepository extends JpaRepository<BusinessUser, Long
     @Query("select businessUser from BusinessUser businessUser where businessUser.user.login = ?#{authentication.name}")
     List<BusinessUser> findByUserIsCurrentUser();
 
+    @Query("select bu from BusinessUser bu where bu.business.id = :businessId and bu.user.id = :userId")
+    Optional<BusinessUser> findByBusinessIdAndUserId(@Param("businessId") Long businessId, @Param("userId") Long userId);
+
+    @Query("select bu from BusinessUser bu where bu.business.id = :businessId")
+    List<BusinessUser> findByBusinessId(@Param("businessId") Long businessId);
+
     default Optional<BusinessUser> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);
     }

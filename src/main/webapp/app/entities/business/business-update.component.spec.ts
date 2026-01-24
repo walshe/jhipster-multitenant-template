@@ -9,8 +9,6 @@ import BusinessService from './business.service';
 import { DATE_TIME_LONG_FORMAT } from '@/shared/composables/date-format';
 import AlertService from '@/shared/alert/alert.service';
 
-import UserService from '@/entities/user/user.service';
-
 type BusinessUpdateComponentType = InstanceType<typeof BusinessUpdate>;
 
 let route: Partial<RouteLocation>;
@@ -35,6 +33,7 @@ describe('Component Tests', () => {
       route = {};
       businessServiceStub = sinon.createStubInstance<BusinessService>(BusinessService);
       businessServiceStub.retrieve.onFirstCall().resolves(Promise.resolve([]));
+      businessServiceStub.retrieveBusinessMembers.resolves({ data: [] }); // Mock the new method
 
       alertService = new AlertService({
         i18n: { t: vitest.fn() } as any,
@@ -54,11 +53,6 @@ describe('Component Tests', () => {
         provide: {
           alertService,
           businessService: () => businessServiceStub,
-
-          userService: () =>
-            sinon.createStubInstance<UserService>(UserService, {
-              retrieve: sinon.stub().resolves({}),
-            } as any),
         },
       };
     });
