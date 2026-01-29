@@ -1,6 +1,7 @@
 package com.walshe.multitenant.web.rest;
 
 import com.walshe.multitenant.repository.BusinessUserRepository;
+import com.walshe.multitenant.service.BusinessAuthorizationService;
 import com.walshe.multitenant.service.BusinessUserQueryService;
 import com.walshe.multitenant.service.BusinessUserService;
 import com.walshe.multitenant.service.criteria.BusinessUserCriteria;
@@ -46,14 +47,18 @@ public class BusinessUserResource {
 
     private final BusinessUserQueryService businessUserQueryService;
 
+    private final BusinessAuthorizationService businessAuthorizationService;
+
     public BusinessUserResource(
         BusinessUserService businessUserService,
         BusinessUserRepository businessUserRepository,
-        BusinessUserQueryService businessUserQueryService
+        BusinessUserQueryService businessUserQueryService,
+        BusinessAuthorizationService businessAuthorizationService
     ) {
         this.businessUserService = businessUserService;
         this.businessUserRepository = businessUserRepository;
         this.businessUserQueryService = businessUserQueryService;
+        this.businessAuthorizationService = businessAuthorizationService;
     }
 
     /**
@@ -70,6 +75,12 @@ public class BusinessUserResource {
         if (businessUserDTO.getId() != null) {
             throw new BadRequestAlertException("A new businessUser cannot already have an ID", ENTITY_NAME, "idexists");
         }
+
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(businessUserDTO.getBusiness().getId())) {
+            throw new BadRequestAlertException("User is not authorized to add members to this business", ENTITY_NAME, "notauthorized");
+        }
+
         businessUserDTO = businessUserService.save(businessUserDTO);
         return ResponseEntity.created(new URI("/api/business-users/" + businessUserDTO.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, businessUserDTO.getId().toString()))
@@ -101,6 +112,11 @@ public class BusinessUserResource {
 
         if (!businessUserRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
+
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(businessUserDTO.getBusiness().getId())) {
+            throw new BadRequestAlertException("User is not authorized to update members of this business", ENTITY_NAME, "notauthorized");
         }
 
         businessUserDTO = businessUserService.update(businessUserDTO);
@@ -135,6 +151,11 @@ public class BusinessUserResource {
 
         if (!businessUserRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
+
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(businessUserDTO.getBusiness().getId())) {
+            throw new BadRequestAlertException("User is not authorized to partially update members of this business", ENTITY_NAME, "notauthorized");
         }
 
         Optional<BusinessUserDTO> result = businessUserService.partialUpdate(businessUserDTO);
@@ -198,6 +219,18 @@ public class BusinessUserResource {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBusinessUser(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete BusinessUser : {}", id);
+
+        // Get the businessUser to check which business it belongs to
+        Optional<BusinessUserDTO> businessUserOpt = businessUserService.findOne(id);
+        if (businessUserOpt.isEmpty()) {
+            throw new BadRequestAlertException("BusinessUser not found", ENTITY_NAME, "idnotfound");
+        }
+
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(businessUserOpt.get().getBusiness().getId())) {
+            throw new BadRequestAlertException("User is not authorized to remove members from this business", ENTITY_NAME, "notauthorized");
+        }
+
         businessUserService.delete(id);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))

@@ -269,6 +269,30 @@ public class BusinessResource {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBusiness(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Business : {}", id);
+
+        // Check if the current user is the owner of the business
+        Optional<User> currentUserOpt = userService.getUserWithAuthorities();
+        if (currentUserOpt.isEmpty()) {
+            throw new BadRequestAlertException("User not authenticated", ENTITY_NAME, "notauthenticated");
+        }
+
+        Optional<BusinessDTO> businessOpt = businessService.findOne(id);
+        if (businessOpt.isEmpty()) {
+            throw new BadRequestAlertException("Business not found", ENTITY_NAME, "idnotfound");
+        }
+
+        User currentUser = currentUserOpt.get();
+        BusinessDTO business = businessOpt.get();
+
+        // Check if the current user is the owner of the business
+        boolean isOwner = business.getOwner() != null && business.getOwner().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getAuthorities().stream()
+            .anyMatch(auth -> "ROLE_ADMIN".equals(auth.getName()));
+
+        if (!isOwner && !isAdmin) {
+            throw new BadRequestAlertException("User is not authorized to delete this business", ENTITY_NAME, "notauthorized");
+        }
+
         businessService.delete(id);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))

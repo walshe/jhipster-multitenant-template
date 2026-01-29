@@ -28,6 +28,8 @@ public class BusinessService {
 
     private static final Logger LOG = LoggerFactory.getLogger(BusinessService.class);
 
+    private static final String ENTITY_NAME = "business";
+
     private final BusinessRepository businessRepository;
 
     private final BusinessUserRepository businessUserRepository;
@@ -36,11 +38,20 @@ public class BusinessService {
 
     private final BusinessMapper businessMapper;
 
-    public BusinessService(BusinessRepository businessRepository, BusinessUserRepository businessUserRepository, UserRepository userRepository, BusinessMapper businessMapper) {
+    private final BusinessAuthorizationService businessAuthorizationService;
+
+    public BusinessService(
+        BusinessRepository businessRepository,
+        BusinessUserRepository businessUserRepository,
+        UserRepository userRepository,
+        BusinessMapper businessMapper,
+        BusinessAuthorizationService businessAuthorizationService
+    ) {
         this.businessRepository = businessRepository;
         this.businessUserRepository = businessUserRepository;
         this.userRepository = userRepository;
         this.businessMapper = businessMapper;
+        this.businessAuthorizationService = businessAuthorizationService;
     }
 
     /**
@@ -179,6 +190,12 @@ public class BusinessService {
     public BusinessDTO update(BusinessDTO businessDTO) {
         LOG.debug("Request to update Business : {}", businessDTO);
 
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(businessDTO.getId())) {
+            throw new com.walshe.multitenant.service.errors.InvalidBusinessOwnershipException(
+                businessDTO.getId().toString(), "User is not authorized to update this business");
+        }
+
         Business existingBusiness = businessRepository.findById(businessDTO.getId()).orElse(null);
         if (existingBusiness != null) {
             // Check if owner is being changed and validate ownership
@@ -228,6 +245,12 @@ public class BusinessService {
      */
     public Optional<BusinessDTO> partialUpdate(BusinessDTO businessDTO) {
         LOG.debug("Request to partially update Business : {}", businessDTO);
+
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(businessDTO.getId())) {
+            throw new com.walshe.multitenant.service.errors.InvalidBusinessOwnershipException(
+                businessDTO.getId().toString(), "User is not authorized to partially update this business");
+        }
 
         return businessRepository
             .findById(businessDTO.getId())
@@ -292,6 +315,13 @@ public class BusinessService {
      */
     public void delete(Long id) {
         LOG.debug("Request to delete Business : {}", id);
+
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(id)) {
+            throw new com.walshe.multitenant.service.errors.InvalidBusinessOwnershipException(
+                id.toString(), "User is not authorized to delete this business");
+        }
+
         businessRepository.deleteById(id);
     }
 }

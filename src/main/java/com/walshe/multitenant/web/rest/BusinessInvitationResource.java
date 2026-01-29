@@ -1,6 +1,7 @@
 package com.walshe.multitenant.web.rest;
 
 import com.walshe.multitenant.repository.BusinessInvitationRepository;
+import com.walshe.multitenant.service.BusinessAuthorizationService;
 import com.walshe.multitenant.service.BusinessInvitationQueryService;
 import com.walshe.multitenant.service.BusinessInvitationService;
 import com.walshe.multitenant.service.criteria.BusinessInvitationCriteria;
@@ -46,14 +47,18 @@ public class BusinessInvitationResource {
 
     private final BusinessInvitationQueryService businessInvitationQueryService;
 
+    private final BusinessAuthorizationService businessAuthorizationService;
+
     public BusinessInvitationResource(
         BusinessInvitationService businessInvitationService,
         BusinessInvitationRepository businessInvitationRepository,
-        BusinessInvitationQueryService businessInvitationQueryService
+        BusinessInvitationQueryService businessInvitationQueryService,
+        BusinessAuthorizationService businessAuthorizationService
     ) {
         this.businessInvitationService = businessInvitationService;
         this.businessInvitationRepository = businessInvitationRepository;
         this.businessInvitationQueryService = businessInvitationQueryService;
+        this.businessAuthorizationService = businessAuthorizationService;
     }
 
     /**
@@ -70,6 +75,12 @@ public class BusinessInvitationResource {
         if (businessInvitationDTO.getId() != null) {
             throw new BadRequestAlertException("A new businessInvitation cannot already have an ID", ENTITY_NAME, "idexists");
         }
+
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(businessInvitationDTO.getBusiness().getId())) {
+            throw new BadRequestAlertException("User is not authorized to create invitations for this business", ENTITY_NAME, "notauthorized");
+        }
+
         businessInvitationDTO = businessInvitationService.save(businessInvitationDTO);
         return ResponseEntity.created(new URI("/api/business-invitations/" + businessInvitationDTO.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, businessInvitationDTO.getId().toString()))
@@ -101,6 +112,11 @@ public class BusinessInvitationResource {
 
         if (!businessInvitationRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
+
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(businessInvitationDTO.getBusiness().getId())) {
+            throw new BadRequestAlertException("User is not authorized to update invitations for this business", ENTITY_NAME, "notauthorized");
         }
 
         businessInvitationDTO = businessInvitationService.update(businessInvitationDTO);
@@ -135,6 +151,11 @@ public class BusinessInvitationResource {
 
         if (!businessInvitationRepository.existsById(id)) {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
+
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(businessInvitationDTO.getBusiness().getId())) {
+            throw new BadRequestAlertException("User is not authorized to partially update invitations for this business", ENTITY_NAME, "notauthorized");
         }
 
         Optional<BusinessInvitationDTO> result = businessInvitationService.partialUpdate(businessInvitationDTO);
@@ -198,6 +219,18 @@ public class BusinessInvitationResource {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBusinessInvitation(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete BusinessInvitation : {}", id);
+
+        // Get the businessInvitation to check which business it belongs to
+        Optional<BusinessInvitationDTO> businessInvitationOpt = businessInvitationService.findOne(id);
+        if (businessInvitationOpt.isEmpty()) {
+            throw new BadRequestAlertException("BusinessInvitation not found", ENTITY_NAME, "idnotfound");
+        }
+
+        // Check if the current user is the owner of the business
+        if (!businessAuthorizationService.isBusinessOwner(businessInvitationOpt.get().getBusiness().getId())) {
+            throw new BadRequestAlertException("User is not authorized to delete invitations for this business", ENTITY_NAME, "notauthorized");
+        }
+
         businessInvitationService.delete(id);
         return ResponseEntity.noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
