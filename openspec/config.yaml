@@ -1,0 +1,44 @@
+schema: spec-driven
+
+context: |
+  Project type:
+  This is an existing JHipster-generated application that is being evolved
+  into a multitenant system.
+
+  Purpose:
+  New entities have been added so the application can support multitenancy
+  (see jhipster-model.jdl).
+  The current UI is basic CRUD-style.
+  Authentication is enforced on some APIs, but authorization is incomplete:
+  some users should not be able to see or access certain rows in certain tables.
+
+  Tech stack:
+  - JHipster
+  - Java
+  - Spring
+  - Spring Data JPA
+  - MySQL
+  - Vue.js
+
+  Current state and problems:
+  - Authentication exists but authorization is inconsistent
+  - Data access is not always properly restricted by tenant
+  - Multitenancy rules need to be enforced consistently across the backend
+
+  Scope of work:
+  - Improve authorization so users can only access data they are entitled to
+  - Enforce tenant-aware data access
+  - Preserve existing JHipster structure and generated code where possible
+
+  Reference artifacts:
+  - jhipster-model.jdl defines the current domain model
+
+rules:
+  proposal:
+    - Do not assume missing domain rules; ask or infer conservatively
+    - Focus on authorization and multitenancy concerns
+    - Avoid unrelated refactors or cosmetic changes
+  tasks:
+    - Prefer incremental, minimal changes
+    - Preserve existing database schema unless explicitly changing it
+    - Follow JHipster conventions and project structure

@@ -49,6 +49,9 @@ export default defineComponent({
 
     if (route.params?.businessInvitationId) {
       retrieveBusinessInvitation(route.params.businessInvitationId);
+    } else {
+      // default role to MEMBER for new records
+      businessInvitation.value.role = 'MEMBER' as any;
     }
 
     const initRelationships = () => {

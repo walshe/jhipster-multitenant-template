@@ -2,8 +2,6 @@
   "multitenantApp": {
     "BusinessRole": {
       "null": "",
-      "OWNER": "OWNER",
-      "ADMIN": "ADMIN",
       "MEMBER": "MEMBER"
     }
   }

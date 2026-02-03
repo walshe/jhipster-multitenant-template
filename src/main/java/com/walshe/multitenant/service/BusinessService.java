@@ -151,11 +151,11 @@ public class BusinessService {
         Optional<BusinessUser> existingBusinessUser = businessUserRepository.findByBusinessIdAndUserId(business.getId(), owner.getId());
 
         if (existingBusinessUser.isEmpty()) {
-            // Create a new BusinessUser relationship with OWNER role
+            // Create a new BusinessUser relationship with MEMBER role
             BusinessUser businessUser = new BusinessUser();
             businessUser.setBusiness(business);
             businessUser.setUser(owner);
-            businessUser.setRole(com.walshe.multitenant.domain.enumeration.BusinessRole.OWNER);
+            businessUser.setRole(com.walshe.multitenant.domain.enumeration.BusinessRole.MEMBER);
             businessUser.setCreatedAt(java.time.Instant.now());
             businessUser.setUpdatedAt(java.time.Instant.now());
 

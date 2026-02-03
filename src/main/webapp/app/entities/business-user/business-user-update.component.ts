@@ -49,6 +49,9 @@ export default defineComponent({
 
     if (route.params?.businessUserId) {
       retrieveBusinessUser(route.params.businessUserId);
+    } else {
+      // default role to MEMBER for new records
+      businessUser.value.role = 'MEMBER' as any;
     }
 
     const initRelationships = () => {

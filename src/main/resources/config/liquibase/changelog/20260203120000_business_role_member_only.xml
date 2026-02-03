@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="business-role-member-only-normalize" author="opsx">
+        <comment>Normalize all role values to MEMBER</comment>
+        <sql>
+            UPDATE business_user SET role = 'MEMBER' WHERE role IS NULL OR role &lt;&gt; 'MEMBER';
+        </sql>
+        <sql>
+            UPDATE business_invitation SET role = 'MEMBER' WHERE role IS NULL OR role &lt;&gt; 'MEMBER';
+        </sql>
+    </changeSet>
+
+    <changeSet id="business-role-member-only-constraint-user" author="opsx">
+        <preConditions onFail="MARK_RAN">
+            <or>
+                <dbms type="h2"/>
+                <dbms type="mysql"/>
+            </or>
+        </preConditions>
+        <comment>Restrict business_user.role to MEMBER</comment>
+        <sql>
+            ALTER TABLE business_user ADD CONSTRAINT ck_business_user_role_member_only CHECK (role = 'MEMBER');
+        </sql>
+    </changeSet>
+
+    <changeSet id="business-role-member-only-constraint-inv" author="opsx">
+        <preConditions onFail="MARK_RAN">
+            <or>
+                <dbms type="h2"/>
+                <dbms type="mysql"/>
+            </or>
+        </preConditions>
+        <comment>Restrict business_invitation.role to MEMBER</comment>
+        <sql>
+            ALTER TABLE business_invitation ADD CONSTRAINT ck_business_invitation_role_member_only CHECK (role = 'MEMBER');
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
