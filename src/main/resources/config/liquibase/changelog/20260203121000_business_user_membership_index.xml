@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20260203121000-idx-business-user-membership" author="openspec">
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists tableName="business_user"/>
+            </and>
+        </preConditions>
+        <createIndex indexName="idx_bu_business_user" tableName="business_user">
+            <column name="business_id"/>
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

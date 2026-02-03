@@ -305,6 +305,10 @@ public class BusinessService {
     @Transactional(readOnly = true)
     public Optional<BusinessDTO> findOne(Long id) {
         LOG.debug("Request to get Business : {}", id);
+        // Enforce membership/ownership visibility for single-entity fetch
+        if (!businessAuthorizationService.isBusinessMember(id)) {
+            return Optional.empty();
+        }
         return businessRepository.findOneWithEagerRelationships(id).map(businessMapper::toDto);
     }
 

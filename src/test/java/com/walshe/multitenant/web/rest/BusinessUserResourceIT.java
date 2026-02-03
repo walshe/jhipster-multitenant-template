@@ -49,8 +49,8 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 class BusinessUserResourceIT {
 
-    private static final BusinessRole DEFAULT_ROLE = BusinessRole.OWNER;
-    private static final BusinessRole UPDATED_ROLE = BusinessRole.ADMIN;
+    private static final BusinessRole DEFAULT_ROLE = BusinessRole.MEMBER;
+    private static final BusinessRole UPDATED_ROLE = BusinessRole.MEMBER;
 
     private static final Instant DEFAULT_CREATED_AT = Instant.ofEpochMilli(0L);
     private static final Instant UPDATED_CREATED_AT = Instant.now().truncatedTo(ChronoUnit.MILLIS);
