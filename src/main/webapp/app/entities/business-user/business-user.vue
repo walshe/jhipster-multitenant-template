@@ -7,17 +7,6 @@
           <font-awesome-icon icon="sync" :spin="isFetching"></font-awesome-icon>
           <span v-text="t$('multitenantApp.businessUser.home.refreshListLabel')"></span>
         </button>
-        <router-link :to="{ name: 'BusinessUserCreate' }" custom v-slot="{ navigate }">
-          <button
-            @click="navigate"
-            id="jh-create-entity"
-            data-cy="entityCreateButton"
-            class="btn btn-primary jh-create-entity create-business-user"
-          >
-            <font-awesome-icon icon="plus"></font-awesome-icon>
-            <span v-text="t$('multitenantApp.businessUser.home.createLabel')"></span>
-          </button>
-        </router-link>
       </div>
     </h2>
     <br />
@@ -83,53 +72,12 @@
                     <span class="d-none d-md-inline" v-text="t$('entity.action.view')"></span>
                   </button>
                 </router-link>
-                <router-link :to="{ name: 'BusinessUserEdit', params: { businessUserId: businessUser.id } }" custom v-slot="{ navigate }">
-                  <button @click="navigate" class="btn btn-primary btn-sm edit" data-cy="entityEditButton">
-                    <font-awesome-icon icon="pencil-alt"></font-awesome-icon>
-                    <span class="d-none d-md-inline" v-text="t$('entity.action.edit')"></span>
-                  </button>
-                </router-link>
-                <b-button
-                  @click="prepareRemove(businessUser)"
-                  variant="danger"
-                  class="btn btn-sm"
-                  data-cy="entityDeleteButton"
-                  v-b-modal.removeEntity
-                >
-                  <font-awesome-icon icon="times"></font-awesome-icon>
-                  <span class="d-none d-md-inline" v-text="t$('entity.action.delete')"></span>
-                </b-button>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <b-modal ref="removeEntity" id="removeEntity">
-      <template #modal-title>
-        <span
-          id="multitenantApp.businessUser.delete.question"
-          data-cy="businessUserDeleteDialogHeading"
-          v-text="t$('entity.delete.title')"
-        ></span>
-      </template>
-      <div class="modal-body">
-        <p id="jhi-delete-businessUser-heading" v-text="t$('multitenantApp.businessUser.delete.question', { id: removeId })"></p>
-      </div>
-      <template #modal-footer>
-        <div>
-          <button type="button" class="btn btn-secondary" v-text="t$('entity.action.cancel')" @click="closeDialog()"></button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            id="jhi-confirm-delete-businessUser"
-            data-cy="entityConfirmDeleteButton"
-            v-text="t$('entity.action.delete')"
-            @click="removeBusinessUser()"
-          ></button>
-        </div>
-      </template>
-    </b-modal>
     <div v-show="businessUsers && businessUsers.length > 0">
       <div class="row justify-content-center">
         <jhi-item-count :page="page" :total="queryCount" :itemsPerPage="itemsPerPage"></jhi-item-count>

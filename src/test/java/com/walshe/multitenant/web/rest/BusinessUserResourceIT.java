@@ -115,6 +115,19 @@ class BusinessUserResourceIT {
     @BeforeEach
     void initTest() {
         businessUser = createEntity();
+        // Ensure BusinessUser is associated to a Business owned by the current mock user ("user")
+        User owner = userRepository.findOneByLogin("user").orElseGet(() -> {
+            User u = UserResourceIT.createEntity();
+            u.setLogin("user");
+            u.setEmail("user@example.com");
+            return userRepository.saveAndFlush(u);
+        });
+        Business biz = BusinessResourceIT.createEntity();
+        biz.setOwner(owner);
+        em.persist(biz);
+        em.flush();
+        businessUser.setBusiness(biz);
+        businessUser.setUser(owner);
     }
 
     @AfterEach
@@ -129,24 +142,14 @@ class BusinessUserResourceIT {
     @Transactional
     void createBusinessUser() throws Exception {
         long databaseSizeBeforeCreate = getRepositoryCount();
-        // Create the BusinessUser
+        // Attempt to create BusinessUser via API should be disabled
         BusinessUserDTO businessUserDTO = businessUserMapper.toDto(businessUser);
-        var returnedBusinessUserDTO = om.readValue(
-            restBusinessUserMockMvc
-                .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(businessUserDTO)))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString(),
-            BusinessUserDTO.class
-        );
+        restBusinessUserMockMvc
+            .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(businessUserDTO)))
+            .andExpect(status().isMethodNotAllowed());
 
-        // Validate the BusinessUser in the database
-        assertIncrementedRepositoryCount(databaseSizeBeforeCreate);
-        var returnedBusinessUser = businessUserMapper.toEntity(returnedBusinessUserDTO);
-        assertBusinessUserUpdatableFieldsEquals(returnedBusinessUser, getPersistedBusinessUser(returnedBusinessUser));
-
-        insertedBusinessUser = returnedBusinessUser;
+        // Validate repository count remains unchanged
+        assertSameRepositoryCount(databaseSizeBeforeCreate);
     }
 
     @Test
@@ -158,10 +161,10 @@ class BusinessUserResourceIT {
 
         long databaseSizeBeforeCreate = getRepositoryCount();
 
-        // An entity with an existing ID cannot be created, so this API call must fail
+        // Endpoint disabled; expect method not allowed
         restBusinessUserMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(businessUserDTO)))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isMethodNotAllowed());
 
         // Validate the BusinessUser in the database
         assertSameRepositoryCount(databaseSizeBeforeCreate);
@@ -174,12 +177,12 @@ class BusinessUserResourceIT {
         // set the field null
         businessUser.setRole(null);
 
-        // Create the BusinessUser, which fails.
+        // Endpoint disabled; expect method not allowed
         BusinessUserDTO businessUserDTO = businessUserMapper.toDto(businessUser);
 
         restBusinessUserMockMvc
             .perform(post(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(businessUserDTO)))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isMethodNotAllowed());
 
         assertSameRepositoryCount(databaseSizeBeforeTest);
     }
@@ -444,24 +447,18 @@ class BusinessUserResourceIT {
 
         long databaseSizeBeforeUpdate = getRepositoryCount();
 
-        // Update the businessUser
-        BusinessUser updatedBusinessUser = businessUserRepository.findById(businessUser.getId()).orElseThrow();
-        // Disconnect from session so that the updates on updatedBusinessUser are not directly saved in db
-        em.detach(updatedBusinessUser);
-        updatedBusinessUser.role(UPDATED_ROLE).createdAt(UPDATED_CREATED_AT).updatedAt(UPDATED_UPDATED_AT);
-        BusinessUserDTO businessUserDTO = businessUserMapper.toDto(updatedBusinessUser);
-
+        // Endpoint disabled; expect method not allowed
+        BusinessUserDTO businessUserDTO = businessUserMapper.toDto(insertedBusinessUser);
         restBusinessUserMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, businessUserDTO.getId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(om.writeValueAsBytes(businessUserDTO))
             )
-            .andExpect(status().isOk());
+            .andExpect(status().isMethodNotAllowed());
 
         // Validate the BusinessUser in the database
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertPersistedBusinessUserToMatchAllProperties(updatedBusinessUser);
     }
 
     @Test
@@ -473,14 +470,14 @@ class BusinessUserResourceIT {
         // Create the BusinessUser
         BusinessUserDTO businessUserDTO = businessUserMapper.toDto(businessUser);
 
-        // If the entity doesn't have an ID, it will throw BadRequestAlertException
+        // Endpoint disabled; expect method not allowed
         restBusinessUserMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, businessUserDTO.getId())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(om.writeValueAsBytes(businessUserDTO))
             )
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isMethodNotAllowed());
 
         // Validate the BusinessUser in the database
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
@@ -495,14 +492,14 @@ class BusinessUserResourceIT {
         // Create the BusinessUser
         BusinessUserDTO businessUserDTO = businessUserMapper.toDto(businessUser);
 
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        // Endpoint disabled; expect method not allowed
         restBusinessUserMockMvc
             .perform(
                 put(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(om.writeValueAsBytes(businessUserDTO))
             )
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isMethodNotAllowed());
 
         // Validate the BusinessUser in the database
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
@@ -517,7 +514,7 @@ class BusinessUserResourceIT {
         // Create the BusinessUser
         BusinessUserDTO businessUserDTO = businessUserMapper.toDto(businessUser);
 
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        // Endpoint disabled; still method not allowed
         restBusinessUserMockMvc
             .perform(put(ENTITY_API_URL).contentType(MediaType.APPLICATION_JSON).content(om.writeValueAsBytes(businessUserDTO)))
             .andExpect(status().isMethodNotAllowed());
@@ -534,27 +531,18 @@ class BusinessUserResourceIT {
 
         long databaseSizeBeforeUpdate = getRepositoryCount();
 
-        // Update the businessUser using partial update
+        // Endpoint disabled; expect method not allowed
         BusinessUser partialUpdatedBusinessUser = new BusinessUser();
         partialUpdatedBusinessUser.setId(businessUser.getId());
-
-        partialUpdatedBusinessUser.updatedAt(UPDATED_UPDATED_AT);
-
         restBusinessUserMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedBusinessUser.getId())
                     .contentType("application/merge-patch+json")
                     .content(om.writeValueAsBytes(partialUpdatedBusinessUser))
             )
-            .andExpect(status().isOk());
-
-        // Validate the BusinessUser in the database
+            .andExpect(status().isMethodNotAllowed());
 
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertBusinessUserUpdatableFieldsEquals(
-            createUpdateProxyForBean(partialUpdatedBusinessUser, businessUser),
-            getPersistedBusinessUser(businessUser)
-        );
     }
 
     @Test
@@ -565,24 +553,18 @@ class BusinessUserResourceIT {
 
         long databaseSizeBeforeUpdate = getRepositoryCount();
 
-        // Update the businessUser using partial update
+        // Endpoint disabled; expect method not allowed
         BusinessUser partialUpdatedBusinessUser = new BusinessUser();
         partialUpdatedBusinessUser.setId(businessUser.getId());
-
-        partialUpdatedBusinessUser.role(UPDATED_ROLE).createdAt(UPDATED_CREATED_AT).updatedAt(UPDATED_UPDATED_AT);
-
         restBusinessUserMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, partialUpdatedBusinessUser.getId())
                     .contentType("application/merge-patch+json")
                     .content(om.writeValueAsBytes(partialUpdatedBusinessUser))
             )
-            .andExpect(status().isOk());
-
-        // Validate the BusinessUser in the database
+            .andExpect(status().isMethodNotAllowed());
 
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
-        assertBusinessUserUpdatableFieldsEquals(partialUpdatedBusinessUser, getPersistedBusinessUser(partialUpdatedBusinessUser));
     }
 
     @Test
@@ -594,14 +576,14 @@ class BusinessUserResourceIT {
         // Create the BusinessUser
         BusinessUserDTO businessUserDTO = businessUserMapper.toDto(businessUser);
 
-        // If the entity doesn't have an ID, it will throw BadRequestAlertException
+        // Endpoint disabled; expect method not allowed
         restBusinessUserMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, businessUserDTO.getId())
                     .contentType("application/merge-patch+json")
                     .content(om.writeValueAsBytes(businessUserDTO))
             )
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isMethodNotAllowed());
 
         // Validate the BusinessUser in the database
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
@@ -616,14 +598,14 @@ class BusinessUserResourceIT {
         // Create the BusinessUser
         BusinessUserDTO businessUserDTO = businessUserMapper.toDto(businessUser);
 
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        // Endpoint disabled; expect method not allowed
         restBusinessUserMockMvc
             .perform(
                 patch(ENTITY_API_URL_ID, longCount.incrementAndGet())
                     .contentType("application/merge-patch+json")
                     .content(om.writeValueAsBytes(businessUserDTO))
             )
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isMethodNotAllowed());
 
         // Validate the BusinessUser in the database
         assertSameRepositoryCount(databaseSizeBeforeUpdate);
@@ -638,7 +620,7 @@ class BusinessUserResourceIT {
         // Create the BusinessUser
         BusinessUserDTO businessUserDTO = businessUserMapper.toDto(businessUser);
 
-        // If url ID doesn't match entity ID, it will throw BadRequestAlertException
+        // Endpoint disabled; expect method not allowed
         restBusinessUserMockMvc
             .perform(patch(ENTITY_API_URL).contentType("application/merge-patch+json").content(om.writeValueAsBytes(businessUserDTO)))
             .andExpect(status().isMethodNotAllowed());
@@ -655,13 +637,13 @@ class BusinessUserResourceIT {
 
         long databaseSizeBeforeDelete = getRepositoryCount();
 
-        // Delete the businessUser
+        // Delete endpoint disabled; expect method not allowed
         restBusinessUserMockMvc
             .perform(delete(ENTITY_API_URL_ID, businessUser.getId()).accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isMethodNotAllowed());
 
-        // Validate the database contains one less item
-        assertDecrementedRepositoryCount(databaseSizeBeforeDelete);
+        // Validate the database contains the same number of items
+        assertSameRepositoryCount(databaseSizeBeforeDelete);
     }
 
     protected long getRepositoryCount() {

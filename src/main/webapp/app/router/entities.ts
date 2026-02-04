@@ -6,7 +6,6 @@ const BusinessUpdate = () => import('@/entities/business/business-update.vue');
 const BusinessDetails = () => import('@/entities/business/business-details.vue');
 
 const BusinessUser = () => import('@/entities/business-user/business-user.vue');
-const BusinessUserUpdate = () => import('@/entities/business-user/business-user-update.vue');
 const BusinessUserDetails = () => import('@/entities/business-user/business-user-details.vue');
 
 const BusinessInvitation = () => import('@/entities/business-invitation/business-invitation.vue');
@@ -47,18 +46,6 @@ export default {
       path: 'business-user',
       name: 'BusinessUser',
       component: BusinessUser,
-      meta: { authorities: [Authority.USER] },
-    },
-    {
-      path: 'business-user/new',
-      name: 'BusinessUserCreate',
-      component: BusinessUserUpdate,
-      meta: { authorities: [Authority.USER] },
-    },
-    {
-      path: 'business-user/:businessUserId/edit',
-      name: 'BusinessUserEdit',
-      component: BusinessUserUpdate,
       meta: { authorities: [Authority.USER] },
     },
     {

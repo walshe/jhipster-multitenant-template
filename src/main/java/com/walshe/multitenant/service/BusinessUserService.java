@@ -25,9 +25,12 @@ public class BusinessUserService {
 
     private final BusinessUserMapper businessUserMapper;
 
-    public BusinessUserService(BusinessUserRepository businessUserRepository, BusinessUserMapper businessUserMapper) {
+    private final BusinessAuthorizationService businessAuthorizationService;
+
+    public BusinessUserService(BusinessUserRepository businessUserRepository, BusinessUserMapper businessUserMapper, BusinessAuthorizationService businessAuthorizationService) {
         this.businessUserRepository = businessUserRepository;
         this.businessUserMapper = businessUserMapper;
+        this.businessAuthorizationService = businessAuthorizationService;
     }
 
     /**
@@ -94,7 +97,10 @@ public class BusinessUserService {
     @Transactional(readOnly = true)
     public Optional<BusinessUserDTO> findOne(Long id) {
         LOG.debug("Request to get BusinessUser : {}", id);
-        return businessUserRepository.findOneWithEagerRelationships(id).map(businessUserMapper::toDto);
+        return businessUserRepository
+            .findOneWithEagerRelationships(id)
+            .filter(entity -> entity.getBusiness() != null && businessAuthorizationService.isBusinessOwner(entity.getBusiness().getId()))
+            .map(businessUserMapper::toDto);
     }
 
     /**
