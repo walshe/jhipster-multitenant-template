@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <!--
+        Retry adding NOT NULL constraints and UNIQUE constraint to business_user table.
+        Using preconditions to check if constraints already exist to avoid errors.
+        Since there's no direct check for notNull constraints, we'll use sqlCheck to verify column properties.
+    -->
+
+    <!-- Add NOT NULL constraint to business_id only if it doesn't exist (using sqlCheck) -->
+    <changeSet id="20260204130000-1" author="jhipster">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'BUSINESS_USER'
+                AND COLUMN_NAME = 'BUSINESS_ID'
+                AND IS_NULLABLE = 'NO'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint
+            tableName="business_user"
+            columnName="business_id"
+            columnDataType="bigint"/>
+    </changeSet>
+
+    <!-- Add NOT NULL constraint to user_id only if it doesn't exist (using sqlCheck) -->
+    <changeSet id="20260204130000-2" author="jhipster">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*)
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'BUSINESS_USER'
+                AND COLUMN_NAME = 'USER_ID'
+                AND IS_NULLABLE = 'NO'
+            </sqlCheck>
+        </preConditions>
+        <addNotNullConstraint
+            tableName="business_user"
+            columnName="user_id"
+            columnDataType="bigint"/>
+    </changeSet>
+
+    <!-- Add UNIQUE constraint on (business_id, user_id) only if it doesn't exist -->
+    <changeSet id="20260204130000-3" author="jhipster">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="business_user" columnNames="business_id, user_id"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint
+            tableName="business_user"
+            columnNames="business_id, user_id"
+            constraintName="uq_business_user_business_user"/>
+    </changeSet>
+</databaseChangeLog>

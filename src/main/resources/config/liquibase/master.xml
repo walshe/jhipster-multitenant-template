@@ -30,4 +30,6 @@
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
     <include file="config/liquibase/changelog/20260203120000_business_role_member_only.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260203121000_business_user_membership_index.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260204120000_business_user_unique_not_null.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260204130000_business_user_unique_not_null_retry.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
