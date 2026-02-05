@@ -6,8 +6,10 @@ import com.walshe.multitenant.domain.User;
 import com.walshe.multitenant.repository.BusinessRepository;
 import com.walshe.multitenant.repository.BusinessUserRepository;
 import com.walshe.multitenant.repository.UserRepository;
+import com.walshe.multitenant.service.criteria.BusinessCriteria;
 import com.walshe.multitenant.service.dto.BusinessDTO;
 import com.walshe.multitenant.service.dto.BusinessMemberDTO;
+import com.walshe.multitenant.service.BusinessQueryService;
 import com.walshe.multitenant.service.mapper.BusinessMapper;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +40,8 @@ public class BusinessService {
 
     private final BusinessMapper businessMapper;
 
+    private final BusinessQueryService businessQueryService;
+
     private final BusinessAuthorizationService businessAuthorizationService;
 
     public BusinessService(
@@ -45,12 +49,14 @@ public class BusinessService {
         BusinessUserRepository businessUserRepository,
         UserRepository userRepository,
         BusinessMapper businessMapper,
+        BusinessQueryService businessQueryService,
         BusinessAuthorizationService businessAuthorizationService
     ) {
         this.businessRepository = businessRepository;
         this.businessUserRepository = businessUserRepository;
         this.userRepository = userRepository;
         this.businessMapper = businessMapper;
+        this.businessQueryService = businessQueryService;
         this.businessAuthorizationService = businessAuthorizationService;
     }
 
@@ -294,6 +300,22 @@ public class BusinessService {
      */
     public Page<BusinessDTO> findAllWithEagerRelationships(Pageable pageable) {
         return businessRepository.findAllWithEagerRelationships(pageable).map(businessMapper::toDto);
+    }
+
+    /**
+     * Get businesses filtered to only those the current user is a member of.
+     *
+     * @param criteria the criteria which the requested entities should match.
+     * @param pageable the pagination information.
+     * @return the list of entities that the current user is a member of.
+     */
+    @Transactional(readOnly = true)
+    public Page<BusinessDTO> findBusinessesForMember(BusinessCriteria criteria, Pageable pageable) {
+        LOG.debug("Request to get businesses for member with criteria: {}", criteria);
+
+        // The BusinessQueryService already implements membership-based filtering in its createSpecification method
+        // This method essentially delegates to the existing filtering logic
+        return businessQueryService.findByCriteria(criteria, pageable);
     }
 
     /**

@@ -75,22 +75,24 @@
                     <span class="d-none d-md-inline" v-text="t$('entity.action.view')"></span>
                   </button>
                 </router-link>
-                <router-link :to="{ name: 'BusinessEdit', params: { businessId: business.id } }" custom v-slot="{ navigate }">
-                  <button @click="navigate" class="btn btn-primary btn-sm edit" data-cy="entityEditButton">
-                    <font-awesome-icon icon="pencil-alt"></font-awesome-icon>
-                    <span class="d-none d-md-inline" v-text="t$('entity.action.edit')"></span>
-                  </button>
-                </router-link>
-                <b-button
-                  @click="prepareRemove(business)"
-                  variant="danger"
-                  class="btn btn-sm"
-                  data-cy="entityDeleteButton"
-                  v-b-modal.removeEntity
-                >
-                  <font-awesome-icon icon="times"></font-awesome-icon>
-                  <span class="d-none d-md-inline" v-text="t$('entity.action.delete')"></span>
-                </b-button>
+                <div v-if="isBusinessOwner(business)">
+                  <router-link :to="{ name: 'BusinessEdit', params: { businessId: business.id } }" custom v-slot="{ navigate }">
+                    <button @click="navigate" class="btn btn-primary btn-sm edit" data-cy="entityEditButton">
+                      <font-awesome-icon icon="pencil-alt"></font-awesome-icon>
+                      <span class="d-none d-md-inline" v-text="t$('entity.action.edit')"></span>
+                    </button>
+                  </router-link>
+                  <b-button
+                    @click="prepareRemove(business)"
+                    variant="danger"
+                    class="btn btn-sm"
+                    data-cy="entityDeleteButton"
+                    v-b-modal.removeEntity
+                  >
+                    <font-awesome-icon icon="times"></font-awesome-icon>
+                    <span class="d-none d-md-inline" v-text="t$('entity.action.delete')"></span>
+                  </b-button>
+                </div>
               </div>
             </td>
           </tr>

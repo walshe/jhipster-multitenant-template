@@ -40,11 +40,13 @@
         <button type="submit" @click.prevent="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
           <font-awesome-icon icon="arrow-left"></font-awesome-icon>&nbsp;<span v-text="t$('entity.action.back')"></span>
         </button>
-        <router-link v-if="business.id" :to="{ name: 'BusinessEdit', params: { businessId: business.id } }" custom v-slot="{ navigate }">
-          <button @click="navigate" class="btn btn-primary">
-            <font-awesome-icon icon="pencil-alt"></font-awesome-icon>&nbsp;<span v-text="t$('entity.action.edit')"></span>
-          </button>
-        </router-link>
+        <div v-if="isBusinessOwner()">
+          <router-link v-if="business.id" :to="{ name: 'BusinessEdit', params: { businessId: business.id } }" custom v-slot="{ navigate }">
+            <button @click="navigate" class="btn btn-primary">
+              <font-awesome-icon icon="pencil-alt"></font-awesome-icon>&nbsp;<span v-text="t$('entity.action.edit')"></span>
+            </button>
+          </router-link>
+        </div>
       </div>
     </div>
   </div>

@@ -19,4 +19,7 @@ public interface BusinessMapper extends EntityMapper<BusinessDTO, Business> {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "login", source = "login")
     UserDTO toDtoUserLogin(User user);
+
+    @Mapping(target = "owner", source = "owner")
+    Business toEntity(BusinessDTO dto);
 }

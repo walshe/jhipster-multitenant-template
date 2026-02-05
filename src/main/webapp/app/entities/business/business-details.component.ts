@@ -1,6 +1,7 @@
 import { type Ref, defineComponent, inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+import { useAccountStore } from '@/shared/config/store/account-store';
 
 import BusinessService from './business.service';
 import { useDateFormat } from '@/shared/composables';
@@ -14,6 +15,7 @@ export default defineComponent({
     const dateFormat = useDateFormat();
     const businessService = inject('businessService', () => new BusinessService());
     const alertService = inject('alertService', () => useAlertService(), true);
+    const accountStore = useAccountStore();
 
     const route = useRoute();
     const router = useRouter();
@@ -26,8 +28,23 @@ export default defineComponent({
         const res = await businessService().find(businessId);
         business.value = res;
       } catch (error) {
-        alertService.showHttpError(error.response);
+        if (error.response?.status === 403 || error.response?.status === 404) {
+          // Handle authorization errors - business not accessible to user
+          alertService.showError(t$('multitenantApp.error.forbidden').toString(), { variant: 'warning' });
+          // Optionally redirect to business list page
+          router.push({ name: 'Business' });
+        } else {
+          alertService.showHttpError(error.response);
+        }
       }
+    };
+
+    // Function to check if the current user is the owner of the business
+    const isBusinessOwner = (): boolean => {
+      if (!accountStore.account || !business.value.owner) {
+        return false;
+      }
+      return accountStore.account.id === business.value.owner.id;
     };
 
     if (route.params?.businessId) {
@@ -38,6 +55,7 @@ export default defineComponent({
       ...dateFormat,
       alertService,
       business,
+      isBusinessOwner,
 
       previousState,
       t$: useI18n().t,

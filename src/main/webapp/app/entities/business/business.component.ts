@@ -1,5 +1,6 @@
 import { type Ref, defineComponent, inject, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useAccountStore } from '@/shared/config/store/account-store';
 
 import BusinessService from './business.service';
 import { type IBusiness } from '@/shared/model/business.model';
@@ -14,6 +15,7 @@ export default defineComponent({
     const dateFormat = useDateFormat();
     const businessService = inject('businessService', () => new BusinessService());
     const alertService = inject('alertService', () => useAlertService(), true);
+    const accountStore = useAccountStore();
 
     const itemsPerPage = ref(20);
     const queryCount: Ref<number> = ref(null);
@@ -51,7 +53,12 @@ export default defineComponent({
         queryCount.value = totalItems.value;
         businesses.value = res.data;
       } catch (err) {
-        alertService.showHttpError(err.response);
+        // Handle specific authorization errors
+        if (err.response?.status === 403) {
+          alertService.showError(t$('multitenantApp.error.forbidden').toString(), { variant: 'warning' });
+        } else {
+          alertService.showHttpError(err.response);
+        }
       } finally {
         isFetching.value = false;
       }
@@ -96,6 +103,14 @@ export default defineComponent({
       propOrder.value = newOrder;
     };
 
+    // Function to check if the current user is the owner of a business
+    const isBusinessOwner = (business: IBusiness): boolean => {
+      if (!accountStore.account || !business.owner) {
+        return false;
+      }
+      return accountStore.account.id === business.owner.id;
+    };
+
     // Whenever order changes, reset the pagination
     watch([propOrder, reverse], async () => {
       if (page.value === 1) {
@@ -131,6 +146,7 @@ export default defineComponent({
       reverse,
       totalItems,
       changeOrder,
+      isBusinessOwner,
       t$,
     };
   },

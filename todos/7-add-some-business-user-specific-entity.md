@@ -1,0 +1,1 @@
+this could be a rewards table or somehting that makes sense - Check the old kudosats schema for an example

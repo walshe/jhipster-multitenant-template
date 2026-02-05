@@ -12,6 +12,7 @@ import com.walshe.multitenant.service.errors.InvalidBusinessOwnershipException;
 import com.walshe.multitenant.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -107,6 +108,7 @@ public class BusinessResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
+    @PreAuthorize("@businessSecurity.isBusinessOwner(#id)")
     public ResponseEntity<BusinessDTO> updateBusiness(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody BusinessDTO businessDTO
@@ -146,6 +148,7 @@ public class BusinessResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @PreAuthorize("@businessSecurity.isBusinessOwner(#id)")
     public ResponseEntity<BusinessDTO> partialUpdateBusiness(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody BusinessDTO businessDTO
@@ -189,7 +192,8 @@ public class BusinessResource {
     ) {
         LOG.debug("REST request to get Businesses by criteria: {}", criteria);
 
-        Page<BusinessDTO> page = businessQueryService.findByCriteria(criteria, pageable);
+        // Filter businesses to only show those the current user is a member of
+        Page<BusinessDTO> page = businessService.findBusinessesForMember(criteria, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -201,35 +205,9 @@ public class BusinessResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the list of business members.
      */
     @GetMapping("/{id}/members")
+    @PreAuthorize("@businessSecurity.isBusinessOwner(#id) or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<com.walshe.multitenant.service.dto.BusinessMemberDTO>> getBusinessMembers(@PathVariable("id") Long id) {
         LOG.debug("REST request to get members of Business : {}", id);
-
-        // Check if the authenticated user is the owner of this business
-        Optional<User> currentUserOpt = userService.getUserWithAuthorities();
-        if (currentUserOpt.isEmpty()) {
-            throw new BadRequestAlertException("User not authenticated", ENTITY_NAME, "notauthenticated");
-        }
-
-        // Get the business to check if the current user is the owner
-        Optional<BusinessDTO> businessOpt = businessService.findOne(id);
-        if (businessOpt.isEmpty()) {
-            throw new BadRequestAlertException("Business not found", ENTITY_NAME, "idnotfound");
-        }
-
-        User currentUser = currentUserOpt.get();
-        BusinessDTO business = businessOpt.get();
-
-        // Check if the current user is the owner of the business or has admin rights
-        // Users need at least ROLE_USER and be the owner of the business
-        boolean hasUserRole = currentUser.getAuthorities().stream()
-            .anyMatch(auth -> "ROLE_USER".equals(auth.getName()));
-        boolean isOwner = business.getOwner() != null && business.getOwner().getId().equals(currentUser.getId());
-        boolean isAdmin = currentUser.getAuthorities().stream()
-            .anyMatch(auth -> "ROLE_ADMIN".equals(auth.getName()));
-
-        if (!((hasUserRole && isOwner) || isAdmin)) {
-            throw new BadRequestAlertException("User is not authorized to access members of this business", ENTITY_NAME, "notauthorized");
-        }
 
         List<com.walshe.multitenant.service.dto.BusinessMemberDTO> members = businessService.getBusinessMembers(id);
         return ResponseEntity.ok().body(members);
@@ -254,6 +232,7 @@ public class BusinessResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the businessDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/{id}")
+    @PreAuthorize("@businessSecurity.isBusinessMember(#id)")
     public ResponseEntity<BusinessDTO> getBusiness(@PathVariable("id") Long id) {
         LOG.debug("REST request to get Business : {}", id);
         Optional<BusinessDTO> businessDTO = businessService.findOne(id);
@@ -267,31 +246,9 @@ public class BusinessResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("@businessSecurity.isBusinessOwner(#id) or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteBusiness(@PathVariable("id") Long id) {
         LOG.debug("REST request to delete Business : {}", id);
-
-        // Check if the current user is the owner of the business
-        Optional<User> currentUserOpt = userService.getUserWithAuthorities();
-        if (currentUserOpt.isEmpty()) {
-            throw new BadRequestAlertException("User not authenticated", ENTITY_NAME, "notauthenticated");
-        }
-
-        Optional<BusinessDTO> businessOpt = businessService.findOne(id);
-        if (businessOpt.isEmpty()) {
-            throw new BadRequestAlertException("Business not found", ENTITY_NAME, "idnotfound");
-        }
-
-        User currentUser = currentUserOpt.get();
-        BusinessDTO business = businessOpt.get();
-
-        // Check if the current user is the owner of the business
-        boolean isOwner = business.getOwner() != null && business.getOwner().getId().equals(currentUser.getId());
-        boolean isAdmin = currentUser.getAuthorities().stream()
-            .anyMatch(auth -> "ROLE_ADMIN".equals(auth.getName()));
-
-        if (!isOwner && !isAdmin) {
-            throw new BadRequestAlertException("User is not authorized to delete this business", ENTITY_NAME, "notauthorized");
-        }
 
         businessService.delete(id);
         return ResponseEntity.noContent()

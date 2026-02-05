@@ -17,6 +17,9 @@ public interface BusinessRepository extends JpaRepository<Business, Long>, JpaSp
     @Query("select business from Business business where business.owner.login = ?#{authentication.name}")
     List<Business> findByOwnerIsCurrentUser();
 
+    @Query("select business from Business business where business.owner.id = :ownerId")
+    List<Business> findByOwnerId(@Param("ownerId") Long ownerId);
+
     default Optional<Business> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);
     }
