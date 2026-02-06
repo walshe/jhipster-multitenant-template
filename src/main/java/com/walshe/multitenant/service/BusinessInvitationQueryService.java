@@ -85,7 +85,8 @@ public class BusinessInvitationQueryService extends QueryService<BusinessInvitat
                 buildSpecification(criteria.getBusinessId(), root ->
                     root.join(BusinessInvitation_.business, JoinType.LEFT).get(Business_.id)
                 ),
-                buildSpecification(criteria.getInvitedById(), root -> root.join(BusinessInvitation_.invitedBy, JoinType.LEFT).get(User_.id))
+                buildSpecification(criteria.getInvitedById(), root -> root.join(BusinessInvitation_.invitedBy, JoinType.LEFT).get(User_.id)),
+                buildSpecification(criteria.getStatus(), BusinessInvitation_.status)
             );
         }
         return specification;

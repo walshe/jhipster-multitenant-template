@@ -66,6 +66,9 @@
             <font-awesome-icon icon="pencil-alt"></font-awesome-icon>&nbsp;<span v-text="t$('entity.action.edit')"></span>
           </button>
         </router-link>
+        <button v-if="businessInvitation.id && businessInvitation.token" @click="copyInvitationLink()" class="btn btn-success ml-2">
+          <font-awesome-icon icon="copy"></font-awesome-icon>&nbsp;<span v-text="t$('multitenantApp.businessInvitation.copyLink')"></span>
+        </button>
       </div>
     </div>
   </div>

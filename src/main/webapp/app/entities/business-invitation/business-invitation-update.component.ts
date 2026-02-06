@@ -55,15 +55,31 @@ export default defineComponent({
     }
 
     const initRelationships = () => {
+      // Fetch businesses owned by the current user
       businessService()
-        .retrieve()
+        .retrieveBusinessesOwnedByCurrentUser()
         .then(res => {
           businesses.value = res.data;
+        })
+        .catch(error => {
+          console.error('Error fetching businesses owned by current user:', error);
+          // Fallback to regular businesses if the owned endpoint fails
+          businessService()
+            .retrieve()
+            .then(res => {
+              businesses.value = res.data;
+            })
+            .catch(err => {
+              console.error('Error fetching businesses:', err);
+            });
         });
       userService()
         .retrieve()
         .then(res => {
           users.value = res.data;
+        })
+        .catch(error => {
+          console.error('Error fetching users:', error);
         });
     };
 
@@ -75,15 +91,15 @@ export default defineComponent({
       role: {
         required: validations.required(t$('entity.validation.required').toString()),
       },
-      token: {
-        required: validations.required(t$('entity.validation.required').toString()),
-      },
+      // Token is auto-generated server-side and not required from UI
       invitedEmail: {
         required: validations.required(t$('entity.validation.required').toString()),
       },
       createdAt: {},
       updatedAt: {},
-      business: {},
+      business: {
+        required: validations.required(t$('entity.validation.required').toString()),
+      },
       invitedBy: {},
     };
     const v$ = useVuelidate(validationRules, businessInvitation as any);
@@ -108,9 +124,13 @@ export default defineComponent({
   methods: {
     save(): void {
       this.isSaving = true;
+      // Don't send token from UI - it's auto-generated server-side
+      const businessInvitationToSend = { ...this.businessInvitation };
+      delete businessInvitationToSend.token;
+
       if (this.businessInvitation.id) {
         this.businessInvitationService()
-          .update(this.businessInvitation)
+          .update(businessInvitationToSend)
           .then(param => {
             this.isSaving = false;
             this.previousState();
@@ -121,8 +141,13 @@ export default defineComponent({
             this.alertService.showHttpError(error.response);
           });
       } else {
+        // For new invitations, use the business-specific endpoint
         this.businessInvitationService()
-          .create(this.businessInvitation)
+          .createForBusiness(
+            this.businessInvitation.business.id,
+            this.businessInvitation.invitedEmail,
+            this.businessInvitation.role
+          )
           .then(param => {
             this.isSaving = false;
             this.previousState();

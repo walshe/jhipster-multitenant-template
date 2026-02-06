@@ -197,6 +197,26 @@ public class BusinessResource {
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
+    
+    /**
+     * {@code GET  /businesses/owned-by-current-user} : get all the businesses owned by the current user.
+     *
+     * @param pageable the pagination information.
+     * @param criteria the criteria which the requested entities should match.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of businesses in body.
+     */
+    @GetMapping("/owned-by-current-user")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<BusinessDTO>> getBusinessesOwnedByCurrentUser(
+        BusinessCriteria criteria,
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+    ) {
+        LOG.debug("REST request to get Businesses owned by current user by criteria: {}", criteria);
+
+        Page<BusinessDTO> page = businessService.findBusinessesOwnedByCurrentUser(criteria, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
 
     /**
      * {@code GET  /businesses/:id/members} : get all the members of a specific business.

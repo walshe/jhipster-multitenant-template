@@ -15,7 +15,13 @@ import org.mapstruct.*;
 public interface BusinessInvitationMapper extends EntityMapper<BusinessInvitationDTO, BusinessInvitation> {
     @Mapping(target = "business", source = "business", qualifiedByName = "businessName")
     @Mapping(target = "invitedBy", source = "invitedBy", qualifiedByName = "userLogin")
+    @Mapping(target = "status", source = "status")
     BusinessInvitationDTO toDto(BusinessInvitation s);
+
+    @Mapping(target = "business", source = "business")
+    @Mapping(target = "invitedBy", source = "invitedBy")
+    @Mapping(target = "status", source = "status")
+    BusinessInvitation toEntity(BusinessInvitationDTO businessInvitationDTO);
 
     @Named("businessName")
     @BeanMapping(ignoreByDefault = true)

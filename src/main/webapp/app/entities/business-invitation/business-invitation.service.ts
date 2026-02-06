@@ -59,6 +59,19 @@ export default class BusinessInvitationService {
     });
   }
 
+  createForBusiness(businessId: number, invitedEmail: string, role: string): Promise<IBusinessInvitation> {
+    return new Promise<IBusinessInvitation>((resolve, reject) => {
+      axios
+        .post(`api/businesses/${businessId}/invitations?invitedEmail=${invitedEmail}&role=${role}`)
+        .then(res => {
+          resolve(res.data);
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  }
+
   update(entity: IBusinessInvitation): Promise<IBusinessInvitation> {
     return new Promise<IBusinessInvitation>((resolve, reject) => {
       axios

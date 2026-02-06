@@ -97,4 +97,17 @@ export default class BusinessService {
         });
     });
   }
+  
+  retrieveBusinessesOwnedByCurrentUser(paginationQuery?: any): Promise<any> {
+    return new Promise<any>((resolve, reject) => {
+      axios
+        .get(`${baseApiUrl}/owned-by-current-user?${buildPaginationQueryOpts(paginationQuery)}`)
+        .then(res => {
+          resolve(res);
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  }
 }

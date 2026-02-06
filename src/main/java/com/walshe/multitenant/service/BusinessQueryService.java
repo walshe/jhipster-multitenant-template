@@ -75,20 +75,8 @@ public class BusinessQueryService extends QueryService<Business> {
      * @return the matching {@link Specification} of the entity.
      */
     protected Specification<Business> createSpecification(BusinessCriteria criteria) {
-        Specification<Business> specification = Specification.where(null);
-        if (criteria != null) {
-            // This has to be called first, because the distinct method returns null
-            specification = Specification.allOf(
-                Boolean.TRUE.equals(criteria.getDistinct()) ? distinct(criteria.getDistinct()) : null,
-                buildRangeSpecification(criteria.getId(), Business_.id),
-                buildStringSpecification(criteria.getName(), Business_.name),
-                buildStringSpecification(criteria.getSlug(), Business_.slug),
-                buildRangeSpecification(criteria.getCreatedAt(), Business_.createdAt),
-                buildRangeSpecification(criteria.getUpdatedAt(), Business_.updatedAt),
-                buildSpecification(criteria.getOwnerId(), root -> root.join(Business_.owner, JoinType.LEFT).get(User_.id))
-            );
-        }
-
+        Specification<Business> specification = createBasicSpecification(criteria);
+        
         // Enforce membership-based visibility for authenticated users
         Optional<com.walshe.multitenant.domain.User> currentUserOpt = userService.getUserWithAuthorities();
         if (currentUserOpt.isPresent()) {
@@ -105,6 +93,29 @@ public class BusinessQueryService extends QueryService<Business> {
             }
         }
 
+        return specification;
+    }
+    
+    /**
+     * Function to convert {@link BusinessCriteria} to a basic {@link Specification} without membership filtering
+     * @param criteria The object which holds all the filters, which the entities should match.
+     * @return the matching {@link Specification} of the entity without membership filter.
+     */
+    protected Specification<Business> createBasicSpecification(BusinessCriteria criteria) {
+        Specification<Business> specification = Specification.where(null);
+        if (criteria != null) {
+            // This has to be called first, because the distinct method returns null
+            specification = Specification.allOf(
+                Boolean.TRUE.equals(criteria.getDistinct()) ? distinct(criteria.getDistinct()) : null,
+                buildRangeSpecification(criteria.getId(), Business_.id),
+                buildStringSpecification(criteria.getName(), Business_.name),
+                buildStringSpecification(criteria.getSlug(), Business_.slug),
+                buildRangeSpecification(criteria.getCreatedAt(), Business_.createdAt),
+                buildRangeSpecification(criteria.getUpdatedAt(), Business_.updatedAt),
+                buildSpecification(criteria.getOwnerId(), root -> root.join(Business_.owner, JoinType.LEFT).get(User_.id))
+            );
+        }
+        
         return specification;
     }
 

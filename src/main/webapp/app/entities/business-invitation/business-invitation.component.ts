@@ -107,6 +107,19 @@ export default defineComponent({
       }
     });
 
+    const copyInvitationLink = (token: string) => {
+      // Construct the invitation link using the token
+      const invitationLink = `${window.location.origin}/#/account/register?invitationToken=${token}`;
+      
+      // Use the Clipboard API to copy the link
+      navigator.clipboard.writeText(invitationLink).then(() => {
+        alertService.showSuccess(t$('multitenantApp.businessInvitation.linkCopied'));
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alertService.showError(t$('multitenantApp.businessInvitation.linkCopyFailed'));
+      });
+    };
+
     // Whenever page changes, switch to the new page.
     watch(page, async () => {
       await retrieveBusinessInvitations();
@@ -131,6 +144,7 @@ export default defineComponent({
       reverse,
       totalItems,
       changeOrder,
+      copyInvitationLink,
       t$,
     };
   },

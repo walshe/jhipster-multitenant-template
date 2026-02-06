@@ -36,26 +36,7 @@
               <small class="form-text text-danger" v-for="error of v$.role.$errors" :key="error.$uid">{{ error.$message }}</small>
             </div>
           </div>
-          <div class="form-group">
-            <label
-              class="form-control-label"
-              v-text="t$('multitenantApp.businessInvitation.token')"
-              for="business-invitation-token"
-            ></label>
-            <input
-              type="text"
-              class="form-control"
-              name="token"
-              id="business-invitation-token"
-              data-cy="token"
-              :class="{ valid: !v$.token.$invalid, invalid: v$.token.$invalid }"
-              v-model="v$.token.$model"
-              required
-            />
-            <div v-if="v$.token.$anyDirty && v$.token.$invalid">
-              <small class="form-text text-danger" v-for="error of v$.token.$errors" :key="error.$uid">{{ error.$message }}</small>
-            </div>
-          </div>
+          <!-- Token field is auto-generated server-side and hidden from UI -->
           <div class="form-group">
             <label
               class="form-control-label"
@@ -141,7 +122,8 @@
               </option>
             </select>
           </div>
-          <div class="form-group">
+          <!-- Hide invitedBy field from creation page - it's auto-assigned to the current user on the server -->
+          <div class="form-group" v-if="businessInvitation.id">
             <label
               class="form-control-label"
               v-text="t$('multitenantApp.businessInvitation.invitedBy')"
@@ -153,6 +135,7 @@
               data-cy="invitedBy"
               name="invitedBy"
               v-model="businessInvitation.invitedBy"
+              disabled
             >
               <option :value="null"></option>
               <option
@@ -167,6 +150,7 @@
                 {{ userOption.login }}
               </option>
             </select>
+            <small class="form-text text-muted" v-text="t$('multitenantApp.businessInvitation.invitedBy.help')"></small>
           </div>
         </div>
         <div>

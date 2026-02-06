@@ -1,6 +1,9 @@
 package com.walshe.multitenant.service;
 
+import com.walshe.multitenant.domain.Business;
 import com.walshe.multitenant.domain.BusinessUser;
+import com.walshe.multitenant.domain.User;
+import com.walshe.multitenant.domain.enumeration.BusinessRole;
 import com.walshe.multitenant.repository.BusinessUserRepository;
 import com.walshe.multitenant.service.dto.BusinessUserDTO;
 import com.walshe.multitenant.service.mapper.BusinessUserMapper;
@@ -111,5 +114,34 @@ public class BusinessUserService {
     public void delete(Long id) {
         LOG.debug("Request to delete BusinessUser : {}", id);
         businessUserRepository.deleteById(id);
+    }
+    
+    /**
+     * Create a business-user relationship.
+     *
+     * @param business the business to join
+     * @param user the user joining the business
+     * @param role the role to assign to the user in the business
+     * @return the created BusinessUser entity
+     */
+    public BusinessUser createBusinessUser(Business business, User user, BusinessRole role) {
+        LOG.debug("Request to create BusinessUser relationship for user {} in business {} with role {}", 
+                 user.getLogin(), business.getName(), role);
+        
+        // Check if the relationship already exists
+        Optional<BusinessUser> existing = businessUserRepository.findByBusinessIdAndUserId(business.getId(), user.getId());
+        if (existing.isPresent()) {
+            // If it exists, just update the role
+            BusinessUser businessUser = existing.get();
+            businessUser.setRole(role);
+            return businessUserRepository.save(businessUser);
+        } else {
+            // Create new relationship
+            BusinessUser businessUser = new BusinessUser();
+            businessUser.setBusiness(business);
+            businessUser.setUser(user);
+            businessUser.setRole(role);
+            return businessUserRepository.save(businessUser);
+        }
     }
 }

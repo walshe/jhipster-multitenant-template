@@ -2,6 +2,7 @@ package com.walshe.multitenant.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.walshe.multitenant.domain.enumeration.BusinessRole;
+import com.walshe.multitenant.domain.enumeration.InvitationStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
@@ -47,6 +48,11 @@ public class BusinessInvitation implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User invitedBy;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private InvitationStatus status;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -154,6 +160,19 @@ public class BusinessInvitation implements Serializable {
         return this;
     }
 
+    public InvitationStatus getStatus() {
+        return this.status;
+    }
+
+    public BusinessInvitation status(InvitationStatus status) {
+        this.setStatus(status);
+        return this;
+    }
+
+    public void setStatus(InvitationStatus status) {
+        this.status = status;
+    }
+
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -164,7 +183,8 @@ public class BusinessInvitation implements Serializable {
         if (!(o instanceof BusinessInvitation)) {
             return false;
         }
-        return getId() != null && getId().equals(((BusinessInvitation) o).getId());
+        BusinessInvitation businessInvitation = (BusinessInvitation) o;
+        return getId() != null && getId().equals(businessInvitation.getId());
     }
 
     @Override

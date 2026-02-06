@@ -1,6 +1,7 @@
 package com.walshe.multitenant.service.criteria;
 
 import com.walshe.multitenant.domain.enumeration.BusinessRole;
+import com.walshe.multitenant.domain.enumeration.InvitationStatus;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,6 +39,23 @@ public class BusinessInvitationCriteria implements Serializable, Criteria {
         }
     }
 
+    /**
+     * Class for filtering InvitationStatus
+     */
+    public static class InvitationStatusFilter extends Filter<InvitationStatus> {
+
+        public InvitationStatusFilter() {}
+
+        public InvitationStatusFilter(InvitationStatusFilter filter) {
+            super(filter);
+        }
+
+        @Override
+        public InvitationStatusFilter copy() {
+            return new InvitationStatusFilter(this);
+        }
+    }
+
     private static final long serialVersionUID = 1L;
 
     private LongFilter id;
@@ -56,6 +74,8 @@ public class BusinessInvitationCriteria implements Serializable, Criteria {
 
     private LongFilter invitedById;
 
+    private InvitationStatusFilter status;
+
     private Boolean distinct;
 
     public BusinessInvitationCriteria() {}
@@ -69,6 +89,7 @@ public class BusinessInvitationCriteria implements Serializable, Criteria {
         this.updatedAt = other.optionalUpdatedAt().map(InstantFilter::copy).orElse(null);
         this.businessId = other.optionalBusinessId().map(LongFilter::copy).orElse(null);
         this.invitedById = other.optionalInvitedById().map(LongFilter::copy).orElse(null);
+        this.status = other.optionalStatus().map(InvitationStatusFilter::copy).orElse(null);
         this.distinct = other.distinct;
     }
 
@@ -229,6 +250,25 @@ public class BusinessInvitationCriteria implements Serializable, Criteria {
         this.invitedById = invitedById;
     }
 
+    public InvitationStatusFilter getStatus() {
+        return status;
+    }
+
+    public Optional<InvitationStatusFilter> optionalStatus() {
+        return Optional.ofNullable(status);
+    }
+
+    public InvitationStatusFilter status() {
+        if (status == null) {
+            setStatus(new InvitationStatusFilter());
+        }
+        return status;
+    }
+
+    public void setStatus(InvitationStatusFilter status) {
+        this.status = status;
+    }
+
     public Boolean getDistinct() {
         return distinct;
     }
@@ -266,13 +306,14 @@ public class BusinessInvitationCriteria implements Serializable, Criteria {
             Objects.equals(updatedAt, that.updatedAt) &&
             Objects.equals(businessId, that.businessId) &&
             Objects.equals(invitedById, that.invitedById) &&
+            Objects.equals(status, that.status) &&
             Objects.equals(distinct, that.distinct)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, role, token, invitedEmail, createdAt, updatedAt, businessId, invitedById, distinct);
+        return Objects.hash(id, role, token, invitedEmail, createdAt, updatedAt, businessId, invitedById, status, distinct);
     }
 
     // prettier-ignore
@@ -287,6 +328,7 @@ public class BusinessInvitationCriteria implements Serializable, Criteria {
             optionalUpdatedAt().map(f -> "updatedAt=" + f + ", ").orElse("") +
             optionalBusinessId().map(f -> "businessId=" + f + ", ").orElse("") +
             optionalInvitedById().map(f -> "invitedById=" + f + ", ").orElse("") +
+            optionalStatus().map(f -> "status=" + f + ", ").orElse("") +
             optionalDistinct().map(f -> "distinct=" + f + ", ").orElse("") +
         "}";
     }

@@ -117,6 +117,14 @@
                   <font-awesome-icon icon="times"></font-awesome-icon>
                   <span class="d-none d-md-inline" v-text="t$('entity.action.delete')"></span>
                 </b-button>
+                <button
+                  v-if="businessInvitation.token"
+                  @click="copyInvitationLink(businessInvitation.token)"
+                  class="btn btn-sm btn-outline-success ml-1"
+                  title="Copy invitation link"
+                >
+                  <font-awesome-icon icon="copy"></font-awesome-icon>
+                </button>
               </div>
             </td>
           </tr>

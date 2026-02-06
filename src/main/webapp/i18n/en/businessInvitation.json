@@ -8,9 +8,9 @@
         "createOrEditLabel": "Create or edit a Business Invitation",
         "notFound": "No Business Invitations found"
       },
-      "created": "A new Business Invitation is created with identifier { param }",
-      "updated": "A Business Invitation is updated with identifier { param }",
-      "deleted": "A Business Invitation is deleted with identifier { param }",
+      "created": "A new Business Invitation has been created with identifier { param }",
+      "updated": "A Business Invitation has been updated with identifier { param }",
+      "deleted": "A Business Invitation has been deleted with identifier { param }",
       "delete": {
         "question": "Are you sure you want to delete Business Invitation { id }?"
       },
@@ -24,7 +24,11 @@
       "createdAt": "Created At",
       "updatedAt": "Updated At",
       "business": "Business",
-      "invitedBy": "Invited By"
+      "invitedBy": "Invited By",
+      "invitedBy.help": "This field is auto-assigned to the user who created the invitation and cannot be changed.",
+      "copyLink": "Copy Invitation Link",
+      "linkCopied": "Invitation link copied to clipboard!",
+      "linkCopyFailed": "Failed to copy invitation link to clipboard."
     }
   }
 }

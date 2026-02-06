@@ -6,14 +6,18 @@ import com.walshe.multitenant.domain.User;
 import com.walshe.multitenant.repository.BusinessRepository;
 import com.walshe.multitenant.repository.BusinessUserRepository;
 import com.walshe.multitenant.repository.UserRepository;
+import com.walshe.multitenant.security.SecurityUtils;
 import com.walshe.multitenant.service.criteria.BusinessCriteria;
 import com.walshe.multitenant.service.dto.BusinessDTO;
 import com.walshe.multitenant.service.dto.BusinessMemberDTO;
 import com.walshe.multitenant.service.BusinessQueryService;
 import com.walshe.multitenant.service.mapper.BusinessMapper;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.jpa.domain.Specification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -317,6 +321,74 @@ public class BusinessService {
         // The BusinessQueryService already implements membership-based filtering in its createSpecification method
         // This method essentially delegates to the existing filtering logic
         return businessQueryService.findByCriteria(criteria, pageable);
+    }
+    
+    /**
+     * Get all businesses owned by the current user.
+     *
+     * @param criteria the criteria which the requested entities should match.
+     * @param pageable the pagination information.
+     * @return the page of businesses owned by the current user.
+     */
+    @Transactional(readOnly = true)
+    public Page<BusinessDTO> findBusinessesOwnedByCurrentUser(BusinessCriteria criteria, Pageable pageable) {
+        LOG.debug("Request to get businesses owned by current user with criteria: {}", criteria);
+
+        // Get current user's ID
+        Long currentUserId = getCurrentUserId();
+        if (currentUserId == null) {
+            // Return empty page if no user is logged in
+            return new PageImpl<>(new ArrayList<>(), pageable, 0);
+        }
+
+        // Create a modified criteria to filter by current user as owner
+        BusinessCriteria ownedCriteria = new BusinessCriteria();
+        if (criteria != null) {
+            // Copy existing criteria
+            ownedCriteria = new BusinessCriteria(criteria);
+        }
+        
+        // Add owner filter for current user
+        ownedCriteria.ownerId().setEquals(currentUserId);
+
+        // Use a custom query method that doesn't apply membership filtering
+        return findBusinessesByOwnerId(currentUserId, pageable);
+    }
+    
+    /**
+     * Custom method to find businesses by owner ID without membership filtering.
+     *
+     * @param ownerId the ID of the owner
+     * @param pageable the pagination information
+     * @return the page of businesses owned by the specified user
+     */
+    @Transactional(readOnly = true)
+    public Page<BusinessDTO> findBusinessesByOwnerId(Long ownerId, Pageable pageable) {
+        LOG.debug("Request to get businesses by owner ID: {}", ownerId);
+        
+        // Create criteria to filter by owner ID
+        BusinessCriteria criteria = new BusinessCriteria();
+        criteria.ownerId().setEquals(ownerId);
+        
+        // Use the basic specification without membership filtering
+        Specification<Business> specification = businessQueryService.createBasicSpecification(criteria);
+        
+        Page<Business> businesses = businessRepository.findAll(specification, pageable);
+        return businesses.map(businessMapper::toDto);
+    }
+    
+    /**
+     * Helper method to get the current user's ID.
+     *
+     * @return the ID of the current user, or null if not authenticated
+     */
+    private Long getCurrentUserId() {
+        String currentLogin = SecurityUtils.getCurrentUserLogin().orElse(null);
+        if (currentLogin != null) {
+            Optional<User> currentUser = userRepository.findOneByLogin(currentLogin);
+            return currentUser.map(User::getId).orElse(null);
+        }
+        return null;
     }
 
     /**

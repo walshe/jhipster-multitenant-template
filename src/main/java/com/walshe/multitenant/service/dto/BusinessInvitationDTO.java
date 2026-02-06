@@ -1,6 +1,7 @@
 package com.walshe.multitenant.service.dto;
 
 import com.walshe.multitenant.domain.enumeration.BusinessRole;
+import com.walshe.multitenant.domain.enumeration.InvitationStatus;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.time.Instant;
@@ -30,6 +31,9 @@ public class BusinessInvitationDTO implements Serializable {
     private BusinessDTO business;
 
     private UserDTO invitedBy;
+
+    @NotNull
+    private InvitationStatus status;
 
     public Long getId() {
         return id;
@@ -95,6 +99,14 @@ public class BusinessInvitationDTO implements Serializable {
         this.invitedBy = invitedBy;
     }
 
+    public InvitationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(InvitationStatus status) {
+        this.status = status;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -126,6 +138,7 @@ public class BusinessInvitationDTO implements Serializable {
             ", invitedEmail='" + getInvitedEmail() + "'" +
             ", createdAt='" + getCreatedAt() + "'" +
             ", updatedAt='" + getUpdatedAt() + "'" +
+            ", status='" + getStatus() + "'" +
             ", business=" + getBusiness() +
             ", invitedBy=" + getInvitedBy() +
             "}";

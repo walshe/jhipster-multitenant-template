@@ -1,14 +1,11 @@
 package com.walshe.multitenant.web.rest;
 
+import com.walshe.multitenant.domain.BusinessInvitation;
+import com.walshe.multitenant.domain.enumeration.BusinessRole;
 import com.walshe.multitenant.repository.BusinessInvitationRepository;
-import com.walshe.multitenant.service.BusinessAuthorizationService;
-import com.walshe.multitenant.service.BusinessInvitationQueryService;
 import com.walshe.multitenant.service.BusinessInvitationService;
-import com.walshe.multitenant.service.criteria.BusinessInvitationCriteria;
-import com.walshe.multitenant.service.dto.BusinessInvitationDTO;
-import com.walshe.multitenant.web.rest.errors.BadRequestAlertException;
+import com.walshe.multitenant.service.UserService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -26,15 +23,16 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
+import com.walshe.multitenant.web.rest.errors.BadRequestAlertException;
 
 /**
- * REST controller for managing {@link com.walshe.multitenant.domain.BusinessInvitation}.
+ * REST controller for managing {@link BusinessInvitation}.
  */
 @RestController
-@RequestMapping("/api/business-invitations")
+@RequestMapping("/api")
 public class BusinessInvitationResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(BusinessInvitationResource.class);
+    private final Logger log = LoggerFactory.getLogger(BusinessInvitationResource.class);
 
     private static final String ENTITY_NAME = "businessInvitation";
 
@@ -45,195 +43,209 @@ public class BusinessInvitationResource {
 
     private final BusinessInvitationRepository businessInvitationRepository;
 
-    private final BusinessInvitationQueryService businessInvitationQueryService;
-
-    private final BusinessAuthorizationService businessAuthorizationService;
-
     public BusinessInvitationResource(
         BusinessInvitationService businessInvitationService,
-        BusinessInvitationRepository businessInvitationRepository,
-        BusinessInvitationQueryService businessInvitationQueryService,
-        BusinessAuthorizationService businessAuthorizationService
+        BusinessInvitationRepository businessInvitationRepository
     ) {
         this.businessInvitationService = businessInvitationService;
         this.businessInvitationRepository = businessInvitationRepository;
-        this.businessInvitationQueryService = businessInvitationQueryService;
-        this.businessAuthorizationService = businessAuthorizationService;
     }
 
     /**
-     * {@code POST  /business-invitations} : Create a new businessInvitation.
+     * {@code POST  /businesses/:businessId/invitations} : Create a new businessInvitation.
      *
-     * @param businessInvitationDTO the businessInvitationDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new businessInvitationDTO, or with status {@code 400 (Bad Request)} if the businessInvitation has already an ID.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
+     * @param businessId the ID of the business to invite to
+     * @param invitedEmail the email of the person being invited
+     * @param role the role to assign to the invited person
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and the new businessInvitation in body
+     * @throws URISyntaxException if the Location URI syntax is incorrect
      */
-    @PostMapping("")
-    public ResponseEntity<BusinessInvitationDTO> createBusinessInvitation(@Valid @RequestBody BusinessInvitationDTO businessInvitationDTO)
-        throws URISyntaxException {
-        LOG.debug("REST request to save BusinessInvitation : {}", businessInvitationDTO);
-        if (businessInvitationDTO.getId() != null) {
-            throw new BadRequestAlertException("A new businessInvitation cannot already have an ID", ENTITY_NAME, "idexists");
-        }
-
-        // Check if the current user is the owner of the business
-        if (!businessAuthorizationService.isBusinessOwner(businessInvitationDTO.getBusiness().getId())) {
-            throw new BadRequestAlertException("User is not authorized to create invitations for this business", ENTITY_NAME, "notauthorized");
-        }
-
-        businessInvitationDTO = businessInvitationService.save(businessInvitationDTO);
-        return ResponseEntity.created(new URI("/api/business-invitations/" + businessInvitationDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, businessInvitationDTO.getId().toString()))
-            .body(businessInvitationDTO);
-    }
-
-    /**
-     * {@code PUT  /business-invitations/:id} : Updates an existing businessInvitation.
-     *
-     * @param id the id of the businessInvitationDTO to save.
-     * @param businessInvitationDTO the businessInvitationDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated businessInvitationDTO,
-     * or with status {@code 400 (Bad Request)} if the businessInvitationDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the businessInvitationDTO couldn't be updated.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
-     */
-    @PutMapping("/{id}")
-    public ResponseEntity<BusinessInvitationDTO> updateBusinessInvitation(
-        @PathVariable(value = "id", required = false) final Long id,
-        @Valid @RequestBody BusinessInvitationDTO businessInvitationDTO
+    @PostMapping("/businesses/{businessId}/invitations")
+    public ResponseEntity<BusinessInvitation> createBusinessInvitation(
+        @PathVariable(value = "businessId") Long businessId,
+        @RequestParam String invitedEmail,
+        @RequestParam BusinessRole role
     ) throws URISyntaxException {
-        LOG.debug("REST request to update BusinessInvitation : {}, {}", id, businessInvitationDTO);
-        if (businessInvitationDTO.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
-        }
-        if (!Objects.equals(id, businessInvitationDTO.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
-        }
-
-        if (!businessInvitationRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
-
-        // Check if the current user is the owner of the business
-        if (!businessAuthorizationService.isBusinessOwner(businessInvitationDTO.getBusiness().getId())) {
-            throw new BadRequestAlertException("User is not authorized to update invitations for this business", ENTITY_NAME, "notauthorized");
-        }
-
-        businessInvitationDTO = businessInvitationService.update(businessInvitationDTO);
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, businessInvitationDTO.getId().toString()))
-            .body(businessInvitationDTO);
+        log.debug("REST request to create BusinessInvitation : {}", invitedEmail);
+        
+        BusinessInvitation result = businessInvitationService.createInvitation(invitedEmail, role, businessId);
+        
+        return ResponseEntity
+            .created(new URI("/api/invitations/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+            .body(result);
     }
 
     /**
-     * {@code PATCH  /business-invitations/:id} : Partial updates given fields of an existing businessInvitation, field will ignore if it is null
+     * {@code GET  /businesses/:businessId/invitations} : get all the businessInvitations for a specific business.
      *
-     * @param id the id of the businessInvitationDTO to save.
-     * @param businessInvitationDTO the businessInvitationDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated businessInvitationDTO,
-     * or with status {@code 400 (Bad Request)} if the businessInvitationDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the businessInvitationDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the businessInvitationDTO couldn't be updated.
-     * @throws URISyntaxException if the Location URI syntax is incorrect.
+     * @param businessId the ID of the business
+     * @param pageable the pagination information
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of businessInvitations in body
      */
-    @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
-    public ResponseEntity<BusinessInvitationDTO> partialUpdateBusinessInvitation(
-        @PathVariable(value = "id", required = false) final Long id,
-        @NotNull @RequestBody BusinessInvitationDTO businessInvitationDTO
-    ) throws URISyntaxException {
-        LOG.debug("REST request to partial update BusinessInvitation partially : {}, {}", id, businessInvitationDTO);
-        if (businessInvitationDTO.getId() == null) {
-            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
-        }
-        if (!Objects.equals(id, businessInvitationDTO.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
-        }
-
-        if (!businessInvitationRepository.existsById(id)) {
-            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-        }
-
-        // Check if the current user is the owner of the business
-        if (!businessAuthorizationService.isBusinessOwner(businessInvitationDTO.getBusiness().getId())) {
-            throw new BadRequestAlertException("User is not authorized to partially update invitations for this business", ENTITY_NAME, "notauthorized");
-        }
-
-        Optional<BusinessInvitationDTO> result = businessInvitationService.partialUpdate(businessInvitationDTO);
-
-        return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, businessInvitationDTO.getId().toString())
-        );
+    @GetMapping("/businesses/{businessId}/invitations")
+    public ResponseEntity<List<BusinessInvitation>> getAllBusinessInvitationsByBusiness(
+        @PathVariable(value = "businessId") Long businessId,
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+    ) {
+        log.debug("REST request to get all BusinessInvitations for business : {}", businessId);
+        
+        Page<BusinessInvitation> page = businessInvitationService.findAllByBusiness(businessId, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
-
+    
     /**
      * {@code GET  /business-invitations} : get all the businessInvitations.
      *
-     * @param pageable the pagination information.
-     * @param criteria the criteria which the requested entities should match.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of businessInvitations in body.
+     * @param pageable the pagination information
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of businessInvitations in body
      */
-    @GetMapping("")
-    public ResponseEntity<List<BusinessInvitationDTO>> getAllBusinessInvitations(
-        BusinessInvitationCriteria criteria,
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable
-    ) {
-        LOG.debug("REST request to get BusinessInvitations by criteria: {}", criteria);
-
-        Page<BusinessInvitationDTO> page = businessInvitationQueryService.findByCriteria(criteria, pageable);
+    @GetMapping("/business-invitations")
+    public ResponseEntity<List<BusinessInvitation>> getAllBusinessInvitations(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        log.debug("REST request to get all BusinessInvitations");
+        
+        Page<BusinessInvitation> page = businessInvitationService.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
-     * {@code GET  /business-invitations/count} : count all the businessInvitations.
-     *
-     * @param criteria the criteria which the requested entities should match.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
-     */
-    @GetMapping("/count")
-    public ResponseEntity<Long> countBusinessInvitations(BusinessInvitationCriteria criteria) {
-        LOG.debug("REST request to count BusinessInvitations by criteria: {}", criteria);
-        return ResponseEntity.ok().body(businessInvitationQueryService.countByCriteria(criteria));
-    }
-
-    /**
      * {@code GET  /business-invitations/:id} : get the "id" businessInvitation.
      *
-     * @param id the id of the businessInvitationDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the businessInvitationDTO, or with status {@code 404 (Not Found)}.
+     * @param id the id of the businessInvitation to retrieve
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the businessInvitation, or with status {@code 404 (Not Found)}
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<BusinessInvitationDTO> getBusinessInvitation(@PathVariable("id") Long id) {
-        LOG.debug("REST request to get BusinessInvitation : {}", id);
-        Optional<BusinessInvitationDTO> businessInvitationDTO = businessInvitationService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(businessInvitationDTO);
+    @GetMapping("/business-invitations/{id}")
+    public ResponseEntity<BusinessInvitation> getBusinessInvitationFlat(@PathVariable Long id) {
+        log.debug("REST request to get BusinessInvitation : {}", id);
+        Optional<BusinessInvitation> businessInvitation = businessInvitationService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(businessInvitation);
     }
 
     /**
      * {@code DELETE  /business-invitations/:id} : delete the "id" businessInvitation.
      *
-     * @param id the id of the businessInvitationDTO to delete.
-     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     * @param id the id of the businessInvitation to delete
+     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}
      */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBusinessInvitation(@PathVariable("id") Long id) {
-        LOG.debug("REST request to delete BusinessInvitation : {}", id);
-
-        // Get the businessInvitation to check which business it belongs to
-        Optional<BusinessInvitationDTO> businessInvitationOpt = businessInvitationService.findOne(id);
-        if (businessInvitationOpt.isEmpty()) {
-            throw new BadRequestAlertException("BusinessInvitation not found", ENTITY_NAME, "idnotfound");
-        }
-
-        // Check if the current user is the owner of the business
-        if (!businessAuthorizationService.isBusinessOwner(businessInvitationOpt.get().getBusiness().getId())) {
-            throw new BadRequestAlertException("User is not authorized to delete invitations for this business", ENTITY_NAME, "notauthorized");
-        }
-
+    @DeleteMapping("/business-invitations/{id}")
+    public ResponseEntity<Void> deleteBusinessInvitationFlat(@PathVariable Long id) {
+        log.debug("REST request to delete BusinessInvitation : {}", id);
         businessInvitationService.delete(id);
-        return ResponseEntity.noContent()
+        return ResponseEntity
+            .noContent()
             .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
+    }
+
+    /**
+     * {@code PUT  /business-invitations/:id} : Updates an existing businessInvitation.
+     *
+     * @param id the id of the businessInvitation to save
+     * @param businessInvitation the businessInvitation to update
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated businessInvitation,
+     * or with status {@code 400 (Bad Request)} if the businessInvitation is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the businessInvitation couldn't be updated.
+     * @throws URISyntaxException if the Location URI syntax is incorrect
+     */
+    @PutMapping("/business-invitations/{id}")
+    public ResponseEntity<BusinessInvitation> updateBusinessInvitationFlat(
+        @PathVariable(value = "id") Long id,
+        @RequestBody BusinessInvitation businessInvitation
+    ) throws URISyntaxException {
+        log.debug("REST request to update BusinessInvitation : {}", id);
+        if (businessInvitation.getId() == null || !Objects.equals(id, businessInvitation.getId())) {
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+        }
+        businessInvitation = businessInvitationService.update(businessInvitation);
+        return ResponseEntity
+            .ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, businessInvitation.getId().toString()))
+            .body(businessInvitation);
+    }
+
+    /**
+     * {@code PATCH  /business-invitations/:id} : Partial updates given fields of an existing businessInvitation, field will ignore if it is null
+     *
+     * @param id the id of the businessInvitation to save
+     * @param businessInvitation the businessInvitation to update
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated businessInvitation,
+     * or with status {@code 400 (Bad Request)} if the businessInvitation is not valid,
+     * or with status {@code 404 (Not Found)} if the businessInvitation is not found,
+     * or with status {@code 500 (Internal Server Error)} if the businessInvitation couldn't be updated.
+     * @throws URISyntaxException if the Location URI syntax is incorrect
+     */
+    @PatchMapping(value = "/business-invitations/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    public ResponseEntity<BusinessInvitation> partialUpdateBusinessInvitationFlat(
+        @PathVariable(value = "id") Long id,
+        @RequestBody BusinessInvitation businessInvitation
+    ) throws URISyntaxException {
+        log.debug("REST request to partial update BusinessInvitation partially : {}", id);
+        if (businessInvitation.getId() == null || !Objects.equals(id, businessInvitation.getId())) {
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+        }
+        Optional<BusinessInvitation> result = businessInvitationService.partialUpdate(businessInvitation);
+        return ResponseUtil.wrapOrNotFound(
+            result,
+            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, businessInvitation.getId().toString())
+        );
+    }
+
+    /**
+     * {@code GET  /invitations/:id} : get the "id" businessInvitation.
+     *
+     * @param id the id of the businessInvitation to retrieve
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the businessInvitation, or with status {@code 404 (Not Found)}
+     */
+    @GetMapping("/invitations/{id}")
+    public ResponseEntity<BusinessInvitation> getBusinessInvitation(@PathVariable Long id) {
+        log.debug("REST request to get BusinessInvitation : {}", id);
+        Optional<BusinessInvitation> businessInvitation = businessInvitationService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(businessInvitation);
+    }
+
+    /**
+     * {@code DELETE  /invitations/:id} : delete the "id" businessInvitation.
+     *
+     * @param id the id of the businessInvitation to delete
+     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}
+     */
+    @DeleteMapping("/invitations/{id}")
+    public ResponseEntity<Void> deleteBusinessInvitation(@PathVariable Long id) {
+        log.debug("REST request to delete BusinessInvitation : {}", id);
+        businessInvitationService.delete(id);
+        return ResponseEntity
+            .noContent()
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+            .build();
+    }
+
+    /**
+     * {@code GET  /invitations/by-token/{token}} : get the businessInvitation by token (public endpoint).
+     *
+     * @param token the token of the businessInvitation to retrieve
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the businessInvitation, or with status {@code 404 (Not Found)}
+     */
+    @GetMapping("/invitations/by-token/{token}")
+    public ResponseEntity<BusinessInvitation> getBusinessInvitationByToken(@PathVariable String token) {
+        log.debug("REST request to get BusinessInvitation by token: {}", token);
+        Optional<BusinessInvitation> businessInvitation = businessInvitationService.findByToken(token);
+        return ResponseUtil.wrapOrNotFound(businessInvitation);
+    }
+
+    /**
+     * {@code POST  /invitations/{token}/accept} : accept the invitation with the given token.
+     *
+     * @param token the token of the invitation to accept
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the accepted businessInvitation
+     */
+    @PostMapping("/invitations/{token}/accept")
+    public ResponseEntity<BusinessInvitation> acceptBusinessInvitation(@PathVariable String token) {
+        log.debug("REST request to accept BusinessInvitation with token: {}", token);
+        BusinessInvitation result = businessInvitationService.acceptInvitation(token);
+        return ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+            .body(result);
     }
 }
