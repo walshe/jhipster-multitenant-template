@@ -23,6 +23,7 @@ public class BusinessDTO implements Serializable {
 
     private Instant updatedAt;
 
+    @NotNull
     private UserDTO owner;
 
     public Long getId() {

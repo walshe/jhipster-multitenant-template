@@ -34,6 +34,7 @@ public class Business implements Serializable {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     private User owner;
 

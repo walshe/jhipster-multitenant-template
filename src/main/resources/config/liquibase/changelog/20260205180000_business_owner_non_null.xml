@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <!--
+        Add NOT NULL constraint to owner_id column in business table.
+        First assign a default owner to any businesses that don't have one, then apply the constraint.
+    -->
+    <changeSet id="20260205180000-1" author="jhipster">
+        
+        <!-- Precondition: Check if there are any businesses without owners -->
+        <preConditions onFail="WARN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM business WHERE owner_id IS NULL;
+            </sqlCheck>
+        </preConditions>
+        
+        <!-- If there are businesses without owners, assign the first available user as owner -->
+        <sql>
+            UPDATE business 
+            SET owner_id = (SELECT MIN(id) FROM jhi_user WHERE activated = true LIMIT 1)
+            WHERE owner_id IS NULL;
+        </sql>
+    </changeSet>
+    
+    <!-- Add NOT NULL constraint to owner_id column -->
+    <changeSet id="20260205180000-2" author="jhipster">
+        <addNotNullConstraint
+            tableName="business"
+            columnName="owner_id"
+            columnDataType="bigint"/>
+    </changeSet>
+</databaseChangeLog>

@@ -32,4 +32,5 @@
     <include file="config/liquibase/changelog/20260203121000_business_user_membership_index.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260204120000_business_user_unique_not_null.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260204130000_business_user_unique_not_null_retry.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260205180000_business_owner_non_null.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

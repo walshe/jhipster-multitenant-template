@@ -178,11 +178,12 @@ public class BusinessService {
     public BusinessDTO save(BusinessDTO businessDTO) {
         LOG.debug("Request to save Business : {}", businessDTO);
         Business business = businessMapper.toEntity(businessDTO);
-        // Only set the owner if it's not already set (for updates, the owner shouldn't change)
+
+        // Ensure the owner is set for new businesses
         if (business.getId() == null && business.getOwner() == null) {
-            // For new businesses, owner should be set via createWithOwner method
-            // This method is kept for backward compatibility
+            throw new IllegalArgumentException("Owner must be set when creating a new business");
         }
+
         business = businessRepository.save(business);
         return businessMapper.toDto(business);
     }
