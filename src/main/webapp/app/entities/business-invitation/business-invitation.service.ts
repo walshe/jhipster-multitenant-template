@@ -97,4 +97,30 @@ export default class BusinessInvitationService {
         });
     });
   }
+
+  getByToken(token: string): Promise<IBusinessInvitation> {
+    return new Promise<IBusinessInvitation>((resolve, reject) => {
+      axios
+        .get(`${baseApiUrl}/by-token/${token}`)
+        .then(res => {
+          resolve(res.data);
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  }
+
+  acceptInvitation(token: string): Promise<IBusinessInvitation> {
+    return new Promise<IBusinessInvitation>((resolve, reject) => {
+      axios
+        .post(`api/invitations/${token}/accept`)
+        .then(res => {
+          resolve(res.data);
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  }
 }
