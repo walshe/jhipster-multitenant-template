@@ -3,7 +3,9 @@ package com.walshe.multitenant.service;
 import com.walshe.multitenant.config.Constants;
 import com.walshe.multitenant.domain.Authority;
 import com.walshe.multitenant.domain.User;
+import com.walshe.multitenant.domain.Business;
 import com.walshe.multitenant.repository.AuthorityRepository;
+import com.walshe.multitenant.repository.BusinessRepository;
 import com.walshe.multitenant.repository.UserRepository;
 import com.walshe.multitenant.security.AuthoritiesConstants;
 import com.walshe.multitenant.security.SecurityUtils;
@@ -41,16 +43,20 @@ public class UserService {
 
     private final CacheManager cacheManager;
 
+    private final BusinessRepository businessRepository;
+
     public UserService(
         UserRepository userRepository,
         PasswordEncoder passwordEncoder,
         AuthorityRepository authorityRepository,
-        CacheManager cacheManager
+        CacheManager cacheManager,
+        BusinessRepository businessRepository
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authorityRepository = authorityRepository;
         this.cacheManager = cacheManager;
+        this.businessRepository = businessRepository;
     }
 
     public Optional<User> activateRegistration(String key) {
@@ -313,6 +319,35 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<String> getAuthorities() {
         return authorityRepository.findAll().stream().map(Authority::getName).toList();
+    }
+
+    /**
+     * Check if the current user is the owner of the specified business.
+     *
+     * @param businessId the ID of the business to check
+     * @return true if the current user is the business owner, false otherwise
+     */
+    @Transactional(readOnly = true)
+    public boolean isCurrentUserBusinessOwner(Long businessId) {
+        Optional<String> currentLogin = SecurityUtils.getCurrentUserLogin();
+        if (currentLogin.isEmpty()) {
+            return false;
+        }
+
+        Optional<User> currentUserOpt = userRepository.findOneByLogin(currentLogin.get());
+        if (currentUserOpt.isEmpty()) {
+            return false;
+        }
+
+        User currentUser = currentUserOpt.get();
+        
+        Optional<Business> businessOpt = businessRepository.findById(businessId);
+        if (businessOpt.isEmpty()) {
+            return false;
+        }
+
+        Business business = businessOpt.get();
+        return business.getOwner().getId().equals(currentUser.getId());
     }
 
     private void clearUserCaches(User user) {

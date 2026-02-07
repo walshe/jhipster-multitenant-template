@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.jhipster.web.util.HeaderUtil;
@@ -61,6 +62,7 @@ public class BusinessInvitationResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
     @PostMapping("/businesses/{businessId}/invitations")
+    @PreAuthorize("@businessSecurity.isBusinessOwner(#businessId)")
     public ResponseEntity<BusinessInvitation> createBusinessInvitation(
         @PathVariable(value = "businessId") Long businessId,
         @RequestParam String invitedEmail,
@@ -84,6 +86,7 @@ public class BusinessInvitationResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of businessInvitations in body
      */
     @GetMapping("/businesses/{businessId}/invitations")
+    @PreAuthorize("@businessSecurity.isBusinessOwnerOrMember(#businessId)")
     public ResponseEntity<List<BusinessInvitation>> getAllBusinessInvitationsByBusiness(
         @PathVariable(value = "businessId") Long businessId,
         @org.springdoc.core.annotations.ParameterObject Pageable pageable
@@ -130,6 +133,7 @@ public class BusinessInvitationResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}
      */
     @DeleteMapping("/business-invitations/{id}")
+    @PreAuthorize("@businessInvitationSecurity.canModifyInvitation(#id)")
     public ResponseEntity<Void> deleteBusinessInvitationFlat(@PathVariable Long id) {
         log.debug("REST request to delete BusinessInvitation : {}", id);
         businessInvitationService.delete(id);
@@ -150,6 +154,7 @@ public class BusinessInvitationResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
     @PutMapping("/business-invitations/{id}")
+    @PreAuthorize("@businessInvitationSecurity.canModifyInvitation(#id)")
     public ResponseEntity<BusinessInvitation> updateBusinessInvitationFlat(
         @PathVariable(value = "id") Long id,
         @RequestBody BusinessInvitation businessInvitation
@@ -177,6 +182,7 @@ public class BusinessInvitationResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect
      */
     @PatchMapping(value = "/business-invitations/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @PreAuthorize("@businessInvitationSecurity.canModifyInvitation(#id)")
     public ResponseEntity<BusinessInvitation> partialUpdateBusinessInvitationFlat(
         @PathVariable(value = "id") Long id,
         @RequestBody BusinessInvitation businessInvitation
