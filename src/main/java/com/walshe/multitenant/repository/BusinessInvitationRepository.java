@@ -27,4 +27,13 @@ public interface BusinessInvitationRepository extends JpaRepository<BusinessInvi
 
     @Query("SELECT bi FROM BusinessInvitation bi WHERE bi.businessId = :businessId AND bi.status = :status")
     Page<BusinessInvitation> findByBusinessIdAndStatus(@Param("businessId") Long businessId, @Param("status") InvitationStatus status, Pageable pageable);
+    
+    @Query("SELECT bi FROM BusinessInvitation bi LEFT JOIN FETCH bi.business LEFT JOIN FETCH bi.invitedBy WHERE bi.id = :id")
+    Optional<BusinessInvitation> findByIdWithEagerRelationships(@Param("id") Long id);
+    
+    @Query("SELECT bi FROM BusinessInvitation bi LEFT JOIN FETCH bi.business LEFT JOIN FETCH bi.invitedBy")
+    Page<BusinessInvitation> findAllWithEagerRelationships(Pageable pageable);
+    
+    @Query("SELECT bi FROM BusinessInvitation bi LEFT JOIN FETCH bi.business LEFT JOIN FETCH bi.invitedBy WHERE bi.businessId = :businessId")
+    Page<BusinessInvitation> findByBusinessIdWithEagerRelationships(@Param("businessId") Long businessId, Pageable pageable);
 }

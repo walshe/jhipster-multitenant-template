@@ -20,7 +20,7 @@ public interface BusinessInvitationMapper extends EntityMapper<BusinessInvitatio
     @Mapping(target = "createdAt", source = "createdAt")
     @Mapping(target = "updatedAt", source = "updatedAt")
     @Mapping(target = "businessId", source = "businessId")
-    @Mapping(target = "createdById", source = "createdByUserId")
+    @Mapping(target = "invitedBy", source = "invitedBy")
     @Mapping(target = "status", source = "status")
     BusinessInvitationDTO toDto(BusinessInvitation s);
 
@@ -31,7 +31,7 @@ public interface BusinessInvitationMapper extends EntityMapper<BusinessInvitatio
     @Mapping(target = "createdAt", source = "createdAt")
     @Mapping(target = "updatedAt", source = "updatedAt")
     @Mapping(target = "businessId", source = "businessId")
-    @Mapping(target = "createdByUserId", source = "createdById")
+    @Mapping(target = "invitedBy", source = "invitedBy")
     @Mapping(target = "status", source = "status")
     BusinessInvitation toEntity(BusinessInvitationDTO businessInvitationDTO);
 

@@ -31,7 +31,7 @@ public class BusinessInvitationDTO implements Serializable {
 
     private Long businessId;  // Store business ID as Long instead of full object
 
-    private Long createdById; // Store created by user ID as Long instead of full object
+    private UserDTO invitedBy; // Store the user who created the invitation
 
     @NotNull
     private InvitationStatus status;
@@ -92,12 +92,12 @@ public class BusinessInvitationDTO implements Serializable {
         this.businessId = businessId;
     }
 
-    public Long getCreatedById() {
-        return createdById;
+    public UserDTO getInvitedBy() {
+        return invitedBy;
     }
 
-    public void setCreatedById(Long createdById) {
-        this.createdById = createdById;
+    public void setInvitedBy(UserDTO invitedBy) {
+        this.invitedBy = invitedBy;
     }
 
     public InvitationStatus getStatus() {
@@ -140,7 +140,7 @@ public class BusinessInvitationDTO implements Serializable {
             ", createdAt='" + getCreatedAt() + "'" +
             ", updatedAt='" + getUpdatedAt() + "'" +
             ", businessId=" + getBusinessId() +
-            ", createdById=" + getCreatedById() +
+            ", invitedBy=" + getInvitedBy() +
             ", status='" + getStatus() + "'" +
             "}";
     }

@@ -93,7 +93,7 @@ public class BusinessInvitationService {
         // Automatically set the inviting user to the current user
         User currentUser = getCurrentUser()
             .orElseThrow(() -> new IllegalStateException("Current user must be authenticated to create an invitation"));
-        businessInvitation.setCreatedByUserId(currentUser.getId()); // Use userId instead of entity
+        businessInvitation.setInvitedBy(currentUser); // Set the invitedBy relationship to the current user
 
         return businessInvitationRepository.save(businessInvitation);
     }
@@ -118,7 +118,7 @@ public class BusinessInvitationService {
             throw new SecurityException("Access denied: Only business owners can view invitations");
         }
 
-        return businessInvitationRepository.findByBusinessIdAndStatus(businessId, InvitationStatus.PENDING, pageable);
+        return businessInvitationRepository.findByBusinessIdWithEagerRelationships(businessId, pageable);
     }
 
     /**
@@ -130,7 +130,7 @@ public class BusinessInvitationService {
     @Transactional(readOnly = true)
     public Optional<BusinessInvitation> findOne(Long id) {
         log.debug("Request to get BusinessInvitation : {}", id);
-        return businessInvitationRepository.findById(id);
+        return businessInvitationRepository.findByIdWithEagerRelationships(id);
     }
 
     /**
@@ -142,7 +142,7 @@ public class BusinessInvitationService {
     @Transactional(readOnly = true)
     public Page<BusinessInvitation> findAll(Pageable pageable) {
         log.debug("Request to get all BusinessInvitations");
-        return businessInvitationRepository.findAll(pageable);
+        return businessInvitationRepository.findAllWithEagerRelationships(pageable);
     }
 
     /**
@@ -198,9 +198,7 @@ public class BusinessInvitationService {
                 if (businessInvitation.getBusinessId() != null) {
                     existingBusinessInvitation.setBusinessId(businessInvitation.getBusinessId());
                 }
-                if (businessInvitation.getInvitedBy() != null) {
-                    existingBusinessInvitation.setInvitedBy(businessInvitation.getInvitedBy());
-                }
+                // Skip updating invitedBy field (preserves original value - immutable after creation)
 
                 return businessInvitationRepository.save(existingBusinessInvitation);
             });

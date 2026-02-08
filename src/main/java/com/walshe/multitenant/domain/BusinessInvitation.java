@@ -48,9 +48,6 @@ public class BusinessInvitation implements Serializable {
     @Column(name = "token", nullable = false, unique = true)
     private String token;
 
-    @NotNull
-    @Column(name = "created_by_user_id", nullable = false)
-    private Long createdByUserId;
 
     @Column(name = "created_at")
     private Instant createdAt;
@@ -59,11 +56,13 @@ public class BusinessInvitation implements Serializable {
     private Instant updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "business_id", insertable = false, updatable = false)
+    @JoinColumn(name = "business_id", referencedColumnName = "id", insertable = false, updatable = false)
     @JsonIgnoreProperties(value = { "owner" }, allowSetters = true)
     private Business business;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", referencedColumnName = "id", nullable = false)
+    @JsonIgnoreProperties(value = { "authorities" }, allowSetters = true)
     private User invitedBy;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
@@ -146,18 +145,6 @@ public class BusinessInvitation implements Serializable {
         this.token = token;
     }
 
-    public Long getCreatedByUserId() {
-        return this.createdByUserId;
-    }
-
-    public BusinessInvitation createdByUserId(Long createdByUserId) {
-        this.setCreatedByUserId(createdByUserId);
-        return this;
-    }
-
-    public void setCreatedByUserId(Long createdByUserId) {
-        this.createdByUserId = createdByUserId;
-    }
 
     public Instant getCreatedAt() {
         return this.createdAt;
@@ -244,7 +231,7 @@ public class BusinessInvitation implements Serializable {
             ", role='" + getRole() + "'" +
             ", status='" + getStatus() + "'" +
             ", token='" + getToken() + "'" +
-            ", createdByUserId='" + getCreatedByUserId() + "'" +
+            ", invitedBy=" + getInvitedBy() +
             ", createdAt='" + getCreatedAt() + "'" +
             ", updatedAt='" + getUpdatedAt() + "'" +
             "}";
