@@ -20,6 +20,7 @@ import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -265,7 +266,7 @@ class BusinessInvitationResourceIT {
             .perform(get(ENTITY_API_URL, business.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(businessInvitation.getId().intValue())))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(businessInvitation.getId().toString())))
             .andExpect(jsonPath("$.[*].role").value(hasItem(DEFAULT_ROLE.toString())))
             .andExpect(jsonPath("$.[*].token").value(hasItem(DEFAULT_TOKEN)))
             .andExpect(jsonPath("$.[*].invitedEmail").value(hasItem(DEFAULT_INVITED_EMAIL)))
@@ -283,7 +284,7 @@ class BusinessInvitationResourceIT {
             .perform(get(INVITATION_ENTITY_API_URL + "/{id}", businessInvitation.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(businessInvitation.getId().intValue()))
+            .andExpect(jsonPath("$.id").value(businessInvitation.getId().toString()))
             .andExpect(jsonPath("$.role").value(DEFAULT_ROLE.toString()))
             .andExpect(jsonPath("$.token").value(DEFAULT_TOKEN))
             .andExpect(jsonPath("$.invitedEmail").value(DEFAULT_INVITED_EMAIL))
@@ -331,7 +332,7 @@ class BusinessInvitationResourceIT {
             .perform(get(TOKEN_API_URL, businessInvitation.getToken()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(businessInvitation.getId().intValue()))
+            .andExpect(jsonPath("$.id").value(businessInvitation.getId().toString()))
             .andExpect(jsonPath("$.role").value(DEFAULT_ROLE.toString()))
             .andExpect(jsonPath("$.token").value(businessInvitation.getToken()))
             .andExpect(jsonPath("$.invitedEmail").value(DEFAULT_INVITED_EMAIL))
@@ -350,7 +351,7 @@ class BusinessInvitationResourceIT {
             .perform(post(ACCEPT_API_URL, businessInvitation.getToken()).with(csrf()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-            .andExpect(jsonPath("$.id").value(businessInvitation.getId().intValue()))
+            .andExpect(jsonPath("$.id").value(businessInvitation.getId().toString()))
             .andExpect(jsonPath("$.status").value(InvitationStatus.ACCEPTED.toString()));
 
         // Validate the status was updated in the database

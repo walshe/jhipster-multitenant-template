@@ -7,21 +7,32 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
+import org.hibernate.annotations.GenericGenerator;
 
 /**
- * A BusinessInvitation.
+ * An invitation that allows a person identified by email
+ * to join a Business with a specific role.
  */
 @Entity
 @Table(name = "business_invitation")
-@SuppressWarnings("common-java:DuplicatedBlocks")
 public class BusinessInvitation implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "id", updatable = false, nullable = false)
     private Long id;
+
+    @NotNull
+    @Column(name = "business_id", nullable = false)
+    private Long businessId;
+
+    @NotNull
+    @Column(name = "invited_email", nullable = false)
+    private String invitedEmail;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -29,12 +40,17 @@ public class BusinessInvitation implements Serializable {
     private BusinessRole role;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private InvitationStatus status;
+
+    @NotNull
     @Column(name = "token", nullable = false, unique = true)
     private String token;
 
     @NotNull
-    @Column(name = "invited_email", nullable = false)
-    private String invitedEmail;
+    @Column(name = "created_by_user_id", nullable = false)
+    private Long createdByUserId;
 
     @Column(name = "created_at")
     private Instant createdAt;
@@ -43,16 +59,12 @@ public class BusinessInvitation implements Serializable {
     private Instant updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_id", insertable = false, updatable = false)
     @JsonIgnoreProperties(value = { "owner" }, allowSetters = true)
     private Business business;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User invitedBy;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private InvitationStatus status;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -69,6 +81,32 @@ public class BusinessInvitation implements Serializable {
         this.id = id;
     }
 
+    public Long getBusinessId() {
+        return this.businessId;
+    }
+
+    public BusinessInvitation businessId(Long businessId) {
+        this.setBusinessId(businessId);
+        return this;
+    }
+
+    public void setBusinessId(Long businessId) {
+        this.businessId = businessId;
+    }
+
+    public String getInvitedEmail() {
+        return this.invitedEmail;
+    }
+
+    public BusinessInvitation invitedEmail(String invitedEmail) {
+        this.setInvitedEmail(invitedEmail);
+        return this;
+    }
+
+    public void setInvitedEmail(String invitedEmail) {
+        this.invitedEmail = invitedEmail;
+    }
+
     public BusinessRole getRole() {
         return this.role;
     }
@@ -80,6 +118,19 @@ public class BusinessInvitation implements Serializable {
 
     public void setRole(BusinessRole role) {
         this.role = role;
+    }
+
+    public InvitationStatus getStatus() {
+        return this.status;
+    }
+
+    public BusinessInvitation status(InvitationStatus status) {
+        this.setStatus(status);
+        return this;
+    }
+
+    public void setStatus(InvitationStatus status) {
+        this.status = status;
     }
 
     public String getToken() {
@@ -95,17 +146,17 @@ public class BusinessInvitation implements Serializable {
         this.token = token;
     }
 
-    public String getInvitedEmail() {
-        return this.invitedEmail;
+    public Long getCreatedByUserId() {
+        return this.createdByUserId;
     }
 
-    public BusinessInvitation invitedEmail(String invitedEmail) {
-        this.setInvitedEmail(invitedEmail);
+    public BusinessInvitation createdByUserId(Long createdByUserId) {
+        this.setCreatedByUserId(createdByUserId);
         return this;
     }
 
-    public void setInvitedEmail(String invitedEmail) {
-        this.invitedEmail = invitedEmail;
+    public void setCreatedByUserId(Long createdByUserId) {
+        this.createdByUserId = createdByUserId;
     }
 
     public Instant getCreatedAt() {
@@ -151,26 +202,13 @@ public class BusinessInvitation implements Serializable {
         return this.invitedBy;
     }
 
-    public void setInvitedBy(User user) {
-        this.invitedBy = user;
+    public void setInvitedBy(User invitedBy) {
+        this.invitedBy = invitedBy;
     }
 
-    public BusinessInvitation invitedBy(User user) {
-        this.setInvitedBy(user);
+    public BusinessInvitation invitedBy(User invitedBy) {
+        this.setInvitedBy(invitedBy);
         return this;
-    }
-
-    public InvitationStatus getStatus() {
-        return this.status;
-    }
-
-    public BusinessInvitation status(InvitationStatus status) {
-        this.setStatus(status);
-        return this;
-    }
-
-    public void setStatus(InvitationStatus status) {
-        this.status = status;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
@@ -184,7 +222,10 @@ public class BusinessInvitation implements Serializable {
             return false;
         }
         BusinessInvitation businessInvitation = (BusinessInvitation) o;
-        return getId() != null && getId().equals(businessInvitation.getId());
+        if (this.id == null) {
+            return false;
+        }
+        return Objects.equals(this.id, businessInvitation.id);
     }
 
     @Override
@@ -198,9 +239,12 @@ public class BusinessInvitation implements Serializable {
     public String toString() {
         return "BusinessInvitation{" +
             "id=" + getId() +
-            ", role='" + getRole() + "'" +
-            ", token='" + getToken() + "'" +
+            ", businessId='" + getBusinessId() + "'" +
             ", invitedEmail='" + getInvitedEmail() + "'" +
+            ", role='" + getRole() + "'" +
+            ", status='" + getStatus() + "'" +
+            ", token='" + getToken() + "'" +
+            ", createdByUserId='" + getCreatedByUserId() + "'" +
             ", createdAt='" + getCreatedAt() + "'" +
             ", updatedAt='" + getUpdatedAt() + "'" +
             "}";

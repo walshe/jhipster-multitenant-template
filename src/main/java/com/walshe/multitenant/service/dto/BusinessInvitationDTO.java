@@ -6,6 +6,7 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A DTO for the {@link com.walshe.multitenant.domain.BusinessInvitation} entity.
@@ -28,9 +29,9 @@ public class BusinessInvitationDTO implements Serializable {
 
     private Instant updatedAt;
 
-    private BusinessDTO business;
+    private Long businessId;  // Store business ID as Long instead of full object
 
-    private UserDTO invitedBy;
+    private Long createdById; // Store created by user ID as Long instead of full object
 
     @NotNull
     private InvitationStatus status;
@@ -83,20 +84,20 @@ public class BusinessInvitationDTO implements Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public BusinessDTO getBusiness() {
-        return business;
+    public Long getBusinessId() {
+        return businessId;
     }
 
-    public void setBusiness(BusinessDTO business) {
-        this.business = business;
+    public void setBusinessId(Long businessId) {
+        this.businessId = businessId;
     }
 
-    public UserDTO getInvitedBy() {
-        return invitedBy;
+    public Long getCreatedById() {
+        return createdById;
     }
 
-    public void setInvitedBy(UserDTO invitedBy) {
-        this.invitedBy = invitedBy;
+    public void setCreatedById(Long createdById) {
+        this.createdById = createdById;
     }
 
     public InvitationStatus getStatus() {
@@ -138,9 +139,9 @@ public class BusinessInvitationDTO implements Serializable {
             ", invitedEmail='" + getInvitedEmail() + "'" +
             ", createdAt='" + getCreatedAt() + "'" +
             ", updatedAt='" + getUpdatedAt() + "'" +
+            ", businessId=" + getBusinessId() +
+            ", createdById=" + getCreatedById() +
             ", status='" + getStatus() + "'" +
-            ", business=" + getBusiness() +
-            ", invitedBy=" + getInvitedBy() +
             "}";
     }
 }

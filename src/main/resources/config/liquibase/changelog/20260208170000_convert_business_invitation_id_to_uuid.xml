@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <!--
+        Change the ID type of business_invitation table from BIGINT to UUID.
+        This is a complex migration that requires careful handling of the primary key.
+    -->
+    <changeSet id="20260208170000-1" author="jhipster">
+        <!-- Add a temporary uuid_id column -->
+        <addColumn tableName="business_invitation">
+            <column name="temp_uuid_id" type="uuid" defaultValueComputed="random_uuid()">
+                <constraints primaryKey="false" nullable="false"/>
+            </column>
+        </addColumn>
+        
+        <!-- Update the temp_uuid_id column to have UUID values based on the existing id -->
+        <sql>
+            UPDATE business_invitation SET temp_uuid_id = RANDOM_UUID();
+        </sql>
+        
+        <!-- Drop existing foreign key constraints that reference this table -->
+        <dropForeignKeyConstraint baseTableName="business_user" baseColumnNames="business_invitation_id" constraintName="fk_business_user__business_invitation_id"/>
+        
+        <!-- Drop the primary key constraint -->
+        <dropPrimaryKey tableName="business_invitation"/>
+        
+        <!-- Drop the old id column -->
+        <dropColumn tableName="business_invitation" columnName="id"/>
+        
+        <!-- Rename the temp_uuid_id column to id -->
+        <renameColumn tableName="business_invitation" oldColumnName="temp_uuid_id" newColumnName="id"/>
+        
+        <!-- Add the primary key constraint back -->
+        <addPrimaryKey tableName="business_invitation" columnNames="id" constraintName="pk_business_invitation"/>
+        
+        <!-- If there were any foreign key references, recreate them -->
+        <!-- Note: There are no FK references to business_invitation in this schema -->
+    </changeSet>
+</databaseChangeLog>

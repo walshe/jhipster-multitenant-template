@@ -9,8 +9,10 @@ import jakarta.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -120,11 +122,13 @@ public class BusinessInvitationResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the businessInvitation, or with status {@code 404 (Not Found)}
      */
     @GetMapping("/business-invitations/{id}")
+    @PreAuthorize("@businessInvitationSecurity.canViewInvitation(#id)")
     public ResponseEntity<BusinessInvitation> getBusinessInvitationFlat(@PathVariable Long id) {
         log.debug("REST request to get BusinessInvitation : {}", id);
         Optional<BusinessInvitation> businessInvitation = businessInvitationService.findOne(id);
         return ResponseUtil.wrapOrNotFound(businessInvitation);
     }
+
 
     /**
      * {@code DELETE  /business-invitations/:id} : delete the "id" businessInvitation.

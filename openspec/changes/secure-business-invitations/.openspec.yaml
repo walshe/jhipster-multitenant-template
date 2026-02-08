@@ -1,0 +1,29 @@
+name: secure-business-invitations
+title: Add Authorization Checks to Business Invitation Endpoints
+description: Implement proper authorization checks to ensure only business owners can create, update, or delete invitations for their businesses
+version: 1.0.0
+status: completed
+created: 2026-02-06
+author: Emmett Walsh
+workflow: standard
+artifacts:
+  - id: spec
+    type: documentation
+    status: completed
+    path: specs/business-invitation-security/spec.md
+  - id: backend-impl
+    type: code
+    status: completed
+    path: src/main/java/com/walshe/multitenant/web/rest/BusinessInvitationResource.java
+  - id: service-impl
+    type: code
+    status: completed
+    path: src/main/java/com/walshe/multitenant/service/BusinessInvitationService.java
+  - id: criteria-update
+    type: code
+    status: completed
+    path: src/main/java/com/walshe/multitenant/service/criteria/BusinessInvitationCriteria.java
+  - id: test-updates
+    type: code
+    status: completed
+    path: src/test/java/com/walshe/multitenant/web/rest/BusinessInvitationResourceIT.java

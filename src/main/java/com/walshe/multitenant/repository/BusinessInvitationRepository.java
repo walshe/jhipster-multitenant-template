@@ -5,6 +5,7 @@ import com.walshe.multitenant.domain.User;
 import com.walshe.multitenant.domain.enumeration.InvitationStatus;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,6 +25,6 @@ public interface BusinessInvitationRepository extends JpaRepository<BusinessInvi
 
     List<BusinessInvitation> findByInvitedEmailAndBusinessId(String invitedEmail, Long businessId);
 
-    @Query("SELECT bi FROM BusinessInvitation bi WHERE bi.business.id = :businessId AND bi.status = :status")
+    @Query("SELECT bi FROM BusinessInvitation bi WHERE bi.businessId = :businessId AND bi.status = :status")
     Page<BusinessInvitation> findByBusinessIdAndStatus(@Param("businessId") Long businessId, @Param("status") InvitationStatus status, Pageable pageable);
 }

@@ -7,6 +7,7 @@ import com.walshe.multitenant.service.criteria.BusinessInvitationCriteria;
 import com.walshe.multitenant.service.dto.BusinessInvitationDTO;
 import com.walshe.multitenant.service.mapper.BusinessInvitationMapper;
 import jakarta.persistence.criteria.JoinType;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -76,7 +77,6 @@ public class BusinessInvitationQueryService extends QueryService<BusinessInvitat
             // This has to be called first, because the distinct method returns null
             specification = Specification.allOf(
                 Boolean.TRUE.equals(criteria.getDistinct()) ? distinct(criteria.getDistinct()) : null,
-                buildRangeSpecification(criteria.getId(), BusinessInvitation_.id),
                 buildSpecification(criteria.getRole(), BusinessInvitation_.role),
                 buildStringSpecification(criteria.getToken(), BusinessInvitation_.token),
                 buildStringSpecification(criteria.getInvitedEmail(), BusinessInvitation_.invitedEmail),

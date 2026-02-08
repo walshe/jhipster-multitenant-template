@@ -13,25 +13,35 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface BusinessInvitationMapper extends EntityMapper<BusinessInvitationDTO, BusinessInvitation> {
-    @Mapping(target = "business", source = "business", qualifiedByName = "businessName")
-    @Mapping(target = "invitedBy", source = "invitedBy", qualifiedByName = "userLogin")
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "role", source = "role")
+    @Mapping(target = "token", source = "token")
+    @Mapping(target = "invitedEmail", source = "invitedEmail")
+    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "updatedAt", source = "updatedAt")
+    @Mapping(target = "businessId", source = "businessId")
+    @Mapping(target = "createdById", source = "createdByUserId")
     @Mapping(target = "status", source = "status")
     BusinessInvitationDTO toDto(BusinessInvitation s);
 
-    @Mapping(target = "business", source = "business")
-    @Mapping(target = "invitedBy", source = "invitedBy")
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "role", source = "role")
+    @Mapping(target = "token", source = "token")
+    @Mapping(target = "invitedEmail", source = "invitedEmail")
+    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "updatedAt", source = "updatedAt")
+    @Mapping(target = "businessId", source = "businessId")
+    @Mapping(target = "createdByUserId", source = "createdById")
     @Mapping(target = "status", source = "status")
     BusinessInvitation toEntity(BusinessInvitationDTO businessInvitationDTO);
 
-    @Named("businessName")
+    @Named("businessId")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "name", source = "name")
-    BusinessDTO toDtoBusinessName(Business business);
+    BusinessDTO toDtoBusinessId(Business business);
 
-    @Named("userLogin")
+    @Named("userId")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "login", source = "login")
-    UserDTO toDtoUserLogin(User user);
+    UserDTO toDtoUserId(User user);
 }

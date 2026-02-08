@@ -58,7 +58,7 @@ public class BusinessInvitationCriteria implements Serializable, Criteria {
 
     private static final long serialVersionUID = 1L;
 
-    private LongFilter id;
+    private StringFilter id;
 
     private BusinessRoleFilter role;
 
@@ -81,7 +81,7 @@ public class BusinessInvitationCriteria implements Serializable, Criteria {
     public BusinessInvitationCriteria() {}
 
     public BusinessInvitationCriteria(BusinessInvitationCriteria other) {
-        this.id = other.optionalId().map(LongFilter::copy).orElse(null);
+        this.id = other.optionalId().map(StringFilter::copy).orElse(null);
         this.role = other.optionalRole().map(BusinessRoleFilter::copy).orElse(null);
         this.token = other.optionalToken().map(StringFilter::copy).orElse(null);
         this.invitedEmail = other.optionalInvitedEmail().map(StringFilter::copy).orElse(null);
@@ -98,22 +98,22 @@ public class BusinessInvitationCriteria implements Serializable, Criteria {
         return new BusinessInvitationCriteria(this);
     }
 
-    public LongFilter getId() {
+    public StringFilter getId() {
         return id;
     }
 
-    public Optional<LongFilter> optionalId() {
+    public Optional<StringFilter> optionalId() {
         return Optional.ofNullable(id);
     }
 
-    public LongFilter id() {
+    public StringFilter id() {
         if (id == null) {
-            setId(new LongFilter());
+            setId(new StringFilter());
         }
         return id;
     }
 
-    public void setId(LongFilter id) {
+    public void setId(StringFilter id) {
         this.id = id;
     }
 

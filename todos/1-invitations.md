@@ -1,7 +1,6 @@
 
-First tidy up model - remove business roles not needed
 
-Add an invitastion status
+Add an invitation status
 
 
 Business owner can create an invite for a user that does or doesnt exist yet
@@ -32,7 +31,7 @@ Invitation must include:
 
 invitedEmail
 
-role (ADMIN or MEMBER; OWNER is forbidden)
+role MEMBER for now
 
 token is:
 
@@ -137,34 +136,3 @@ entity BusinessInvitation {
 }
 
 
-Why?
-
-Prevents “soft logic” bugs
-
-Makes OpenSpec-generated rules far clearer
-
-Enables future extensions (EXPIRED, REVOKED)
-
-🧠 Why This Version Works Better with OpenSpec
-
-Compared to your original text, this version:
-
-✅ Separates rules, permissions, and state changes
-
-✅ Eliminates ambiguity around “updated by token”
-
-✅ Explicitly defines who can do what and when
-
-✅ Makes acceptance logic deterministic (critical for codegen)
-
-✅ Matches how JHipster services/controllers actually get generated
-
-If you want, next we can:
-
-Turn this directly into OpenSpec YAML
-
-Define RLS / security rules (esp. if you later move to Supabase-style enforcement)
-
-Map this cleanly to JHipster Spring Security expressions
-
-Add email invite + magic link flow
