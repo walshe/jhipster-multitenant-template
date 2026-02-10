@@ -108,8 +108,8 @@ export default defineComponent({
     });
 
     const copyInvitationLink = (token: string) => {
-      // Construct the invitation link using the token
-      const invitationLink = `${window.location.origin}/#/account/register?invitationToken=${token}`;
+      // Construct the invitation link using the token - now points to preview route
+      const invitationLink = `${window.location.origin}/invite/${token}`;
       
       // Use the Clipboard API to copy the link
       navigator.clipboard.writeText(invitationLink).then(() => {

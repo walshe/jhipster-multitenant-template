@@ -106,7 +106,10 @@ const app = createApp({
       // Make sure login modal is closed
       hideLogin();
 
-      if (!store.authenticated) {
+      const isInvitePreview =
+      typeof to.path === 'string' && to.path.startsWith('/invite/');
+
+      if (!store.authenticated && !isInvitePreview) {
         await accountService.update();
       }
       if (to.meta?.authorities && to.meta.authorities.length > 0) {

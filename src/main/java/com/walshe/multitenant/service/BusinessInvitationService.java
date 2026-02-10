@@ -127,23 +127,36 @@ public class BusinessInvitationService {
      * @param id the id of the entity
      * @return the entity
      */
+    /**
+     * Get all business invitations where the current user is the business owner.
+     *
+     * @param pageable the pagination information
+     * @return the list of entities
+     */
+    @Transactional(readOnly = true)
+    public Page<BusinessInvitation> findAllForCurrentUserAsBusinessOwner(Pageable pageable) {
+        log.debug("Request to get all BusinessInvitations where current user is business owner");
+        
+        // Get the current user
+        String currentUserLogin = SecurityUtils.getCurrentUserLogin().orElse(null);
+        if (currentUserLogin == null) {
+            throw new IllegalStateException("Current user must be authenticated");
+        }
+        
+        // Find the user entity
+        User currentUser = userRepository.findOneByLogin(currentUserLogin)
+            .orElseThrow(() -> new IllegalArgumentException("Current user not found"));
+        
+        // Find all invitations for businesses owned by the current user
+        return businessInvitationRepository.findByBusinessOwnerId(currentUser.getId(), pageable);
+    }
+
     @Transactional(readOnly = true)
     public Optional<BusinessInvitation> findOne(Long id) {
         log.debug("Request to get BusinessInvitation : {}", id);
         return businessInvitationRepository.findByIdWithEagerRelationships(id);
     }
 
-    /**
-     * Get all business invitations.
-     *
-     * @param pageable the pagination information
-     * @return the list of entities
-     */
-    @Transactional(readOnly = true)
-    public Page<BusinessInvitation> findAll(Pageable pageable) {
-        log.debug("Request to get all BusinessInvitations");
-        return businessInvitationRepository.findAllWithEagerRelationships(pageable);
-    }
 
     /**
      * Update a businessInvitation.
@@ -239,6 +252,12 @@ public class BusinessInvitationService {
     public Optional<BusinessInvitation> findByToken(String token) {
         log.debug("Request to get BusinessInvitation by token: {}", token);
         return businessInvitationRepository.findByToken(token);
+    }
+    
+    @Transactional(readOnly = true)
+    public Optional<BusinessInvitation> findByTokenWithEagerRelationships(String token) {
+        log.debug("Request to get BusinessInvitation by token with eager relationships: {}", token);
+        return businessInvitationRepository.findByTokenWithEagerRelationships(token);
     }
 
     /**

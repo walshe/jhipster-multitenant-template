@@ -88,7 +88,7 @@ public class BusinessInvitationResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of businessInvitations in body
      */
     @GetMapping("/businesses/{businessId}/invitations")
-    @PreAuthorize("@businessSecurity.isBusinessOwnerOrMember(#businessId)")
+    @PreAuthorize("@businessSecurity.isBusinessOwner(#businessId)")
     public ResponseEntity<List<BusinessInvitation>> getAllBusinessInvitationsByBusiness(
         @PathVariable(value = "businessId") Long businessId,
         @org.springdoc.core.annotations.ParameterObject Pageable pageable
@@ -106,14 +106,6 @@ public class BusinessInvitationResource {
      * @param pageable the pagination information
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of businessInvitations in body
      */
-    @GetMapping("/business-invitations")
-    public ResponseEntity<List<BusinessInvitation>> getAllBusinessInvitations(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
-        log.debug("REST request to get all BusinessInvitations");
-        
-        Page<BusinessInvitation> page = businessInvitationService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
-    }
 
     /**
      * {@code GET  /business-invitations/:id} : get the "id" businessInvitation.
@@ -203,56 +195,45 @@ public class BusinessInvitationResource {
     }
 
     /**
-     * {@code GET  /invitations/:id} : get the "id" businessInvitation.
-     *
-     * @param id the id of the businessInvitation to retrieve
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the businessInvitation, or with status {@code 404 (Not Found)}
-     */
-    @GetMapping("/invitations/{id}")
-    public ResponseEntity<BusinessInvitation> getBusinessInvitation(@PathVariable Long id) {
-        log.debug("REST request to get BusinessInvitation : {}", id);
-        Optional<BusinessInvitation> businessInvitation = businessInvitationService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(businessInvitation);
-    }
-
-    /**
-     * {@code DELETE  /invitations/:id} : delete the "id" businessInvitation.
-     *
-     * @param id the id of the businessInvitation to delete
-     * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}
-     */
-    @DeleteMapping("/invitations/{id}")
-    public ResponseEntity<Void> deleteBusinessInvitation(@PathVariable Long id) {
-        log.debug("REST request to delete BusinessInvitation : {}", id);
-        businessInvitationService.delete(id);
-        return ResponseEntity
-            .noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-            .build();
-    }
-
-    /**
-     * {@code GET  /invitations/by-token/{token}} : get the businessInvitation by token (public endpoint).
+     * {@code GET  /business-invitations/by-token/{token}} : get the businessInvitation by token (public endpoint).
      *
      * @param token the token of the businessInvitation to retrieve
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the businessInvitation, or with status {@code 404 (Not Found)}
      */
-    @GetMapping("/invitations/by-token/{token}")
+    /**
+     * {@code GET  /business-invitations} : get all the businessInvitations where the current user is the business owner.
+     *
+     * @param pageable the pagination information
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of businessInvitations in body
+     */
+    @GetMapping("/business-invitations")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<BusinessInvitation>> getAllBusinessInvitations(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+        log.debug("REST request to get all BusinessInvitations for current user as business owner");
+        
+        Page<BusinessInvitation> page = businessInvitationService.findAllForCurrentUserAsBusinessOwner(pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    @GetMapping("/business-invitations/by-token/{token}")
     public ResponseEntity<BusinessInvitation> getBusinessInvitationByToken(@PathVariable String token) {
         log.debug("REST request to get BusinessInvitation by token: {}", token);
-        Optional<BusinessInvitation> businessInvitation = businessInvitationService.findByToken(token);
+        Optional<BusinessInvitation> businessInvitation = businessInvitationService.findByTokenWithEagerRelationships(token);
         return ResponseUtil.wrapOrNotFound(businessInvitation);
     }
 
     /**
-     * {@code POST  /invitations/{token}/accept} : accept the invitation with the given token.
+     * {@code POST  /business-invitations/accept} : accept the invitation with the given token in request body.
      *
-     * @param token the token of the invitation to accept
+     * @param requestBody the request body containing the token
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the accepted businessInvitation
      */
-    @PostMapping("/invitations/{token}/accept")
-    public ResponseEntity<BusinessInvitation> acceptBusinessInvitation(@PathVariable String token) {
-        log.debug("REST request to accept BusinessInvitation with token: {}", token);
+    @PostMapping("/business-invitations/accept")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<BusinessInvitation> acceptBusinessInvitationFromBody(@RequestBody Map<String, String> requestBody) {
+        String token = requestBody.get("token");
+        log.debug("REST request to accept BusinessInvitation with token from request body: {}", token);
         BusinessInvitation result = businessInvitationService.acceptInvitation(token);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))

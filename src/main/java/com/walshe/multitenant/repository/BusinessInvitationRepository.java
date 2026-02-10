@@ -23,6 +23,9 @@ public interface BusinessInvitationRepository extends JpaRepository<BusinessInvi
 
     Optional<BusinessInvitation> findByToken(String token);
 
+    @Query("SELECT bi FROM BusinessInvitation bi LEFT JOIN FETCH bi.business LEFT JOIN FETCH bi.invitedBy WHERE bi.token = :token")
+    Optional<BusinessInvitation> findByTokenWithEagerRelationships(@Param("token") String token);
+
     List<BusinessInvitation> findByInvitedEmailAndBusinessId(String invitedEmail, Long businessId);
 
     @Query("SELECT bi FROM BusinessInvitation bi WHERE bi.businessId = :businessId AND bi.status = :status")
@@ -36,4 +39,7 @@ public interface BusinessInvitationRepository extends JpaRepository<BusinessInvi
     
     @Query("SELECT bi FROM BusinessInvitation bi LEFT JOIN FETCH bi.business LEFT JOIN FETCH bi.invitedBy WHERE bi.businessId = :businessId")
     Page<BusinessInvitation> findByBusinessIdWithEagerRelationships(@Param("businessId") Long businessId, Pageable pageable);
+    
+    @Query("SELECT bi FROM BusinessInvitation bi LEFT JOIN FETCH bi.business b LEFT JOIN FETCH bi.invitedBy WHERE b.owner.id = :ownerId")
+    Page<BusinessInvitation> findByBusinessOwnerId(@Param("ownerId") Long ownerId, Pageable pageable);
 }

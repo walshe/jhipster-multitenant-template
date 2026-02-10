@@ -7,6 +7,7 @@ import { type IBusinessInvitation } from '@/shared/model/business-invitation.mod
 const baseApiUrl = 'api/business-invitations';
 
 export default class BusinessInvitationService {
+  
   find(id: number): Promise<IBusinessInvitation> {
     return new Promise<IBusinessInvitation>((resolve, reject) => {
       axios
@@ -114,7 +115,7 @@ export default class BusinessInvitationService {
   acceptInvitation(token: string): Promise<IBusinessInvitation> {
     return new Promise<IBusinessInvitation>((resolve, reject) => {
       axios
-        .post(`api/invitations/${token}/accept`)
+        .post(`api/business-invitations/accept`, { token: token })
         .then(res => {
           resolve(res.data);
         })
